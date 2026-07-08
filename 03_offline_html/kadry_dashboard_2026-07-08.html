@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Кадровый дашборд 08.07.2026</title>
+<style>
+body{margin:0;background:#f6f7fb;color:#1f2937;font-family:Arial,Helvetica,sans-serif}header{background:linear-gradient(135deg,#16213e,#244b7a);color:#fff;padding:28px 34px}h1{margin:0 0 8px;font-size:28px}main{max-width:1400px;margin:auto;padding:24px 34px 48px}.note{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;padding:12px 14px;border-radius:14px;margin-bottom:18px}.kpis{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:12px;margin-bottom:18px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 2px 10px rgba(15,23,42,.04)}.kpi{padding:15px}.label{font-size:12px;color:#6b7280;margin-bottom:8px}.value{font-size:26px;font-weight:700}.sub{font-size:12px;color:#6b7280;margin-top:6px}.tabs{display:flex;gap:8px;flex-wrap:wrap;padding:12px;margin-bottom:18px}.tabs button{border:1px solid #e5e7eb;background:white;border-radius:10px;padding:10px 12px;cursor:pointer}.tabs button.active{background:#1f6feb;color:#fff;border-color:#1f6feb}section{padding:16px;margin-bottom:18px}section h2{margin:0 0 12px;font-size:20px}.hidden{display:none}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #e5e7eb;text-align:left;padding:9px 8px;vertical-align:top}th{background:#f9fafb}.badge{display:inline-block;border-radius:999px;padding:3px 8px;font-weight:700;font-size:12px}.work{background:#ecfdf3;color:#067647}.red{background:#fef3f2;color:#b42318}.vac{background:#eff8ff;color:#175cd3}.half{background:#fffaeb;color:#b54708}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.small{color:#6b7280;font-size:12px}@media(max-width:1000px){.kpis,.grid{grid-template-columns:1fr}.value{font-size:22px}}</style>
+</head>
+<body>
+<header><h1>Кадровый дашборд — 08.07.2026</h1><p>Еженедельный мониторинг: сотрудники, ставки, сокращение, вакансии, закрепления</p></header>
+<main>
+<div class="note">Важно: сокращение считаем отдельно в строках/людях и в ставках. 0,5 ставки уменьшают итог по ставкам, поэтому простая цифра сотрудников может вводить в заблуждение.</div>
+<div class="kpis">
+<div class="card kpi"><div class="label">Всего строк</div><div class="value">141</div><div class="sub">рабочий реестр</div></div>
+<div class="card kpi"><div class="label">Работает</div><div class="value">116</div><div class="sub">114,5 ставки</div></div>
+<div class="card kpi"><div class="label">Вакансии</div><div class="value">2</div><div class="sub">список ниже</div></div>
+<div class="card kpi"><div class="label">Сокращение</div><div class="value">23</div><div class="sub">21,5 ставки</div></div>
+<div class="card kpi"><div class="label">0,5 ставки</div><div class="value">6</div><div class="sub">все у Викуловой</div></div>
+<div class="card kpi"><div class="label">Всего ставок</div><div class="value">138</div><div class="sub">по реестру</div></div>
+<div class="card kpi"><div class="label">Дата</div><div class="value">08.07</div><div class="sub">2026</div></div>
+</div>
+<div class="tabs card">
+<button class="active" onclick="show('zam',this)">По замам</button>
+<button onclick="show('resp',this)">По закреплённым</button>
+<button onclick="show('half',this)">0,5 ставки</button>
+<button onclick="show('reduction',this)">Сокращение — фамилии</button>
+<button onclick="show('vacancies',this)">Вакансии</button>
+<button onclick="show('rules',this)">Правила</button>
+</div>
+<section id="zam" class="card"><h2>Свод по замам / блокам</h2><table><thead><tr><th>Зам/Блок</th><th>Всего строк</th><th>Работает</th><th>Работает ставок</th><th>Вакансии</th><th>Сокращение</th><th>Сокращение ставок</th></tr></thead><tbody>
+<tr><td>Викулова</td><td>61</td><td>48</td><td>46,5</td><td>0</td><td>13</td><td>11,5</td></tr>
+<tr><td>Чернышин</td><td>27</td><td>23</td><td>23</td><td>0</td><td>4</td><td>4</td></tr>
+<tr><td>УпрВнешКомм</td><td>12</td><td>12</td><td>12</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>Бондарева</td><td>9</td><td>8</td><td>8</td><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>Попов</td><td>7</td><td>5</td><td>5</td><td>0</td><td>2</td><td>2</td></tr>
+<tr><td>Волосевич</td><td>5</td><td>4</td><td>4</td><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>Дивин</td><td>5</td><td>4</td><td>4</td><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>Евмененко</td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>Мурашов</td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>Соловьева</td><td>3</td><td>3</td><td>3</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>Вовк</td><td>3</td><td>2</td><td>2</td><td>1</td><td>0</td><td>0</td></tr>
+<tr><td>Кравченко</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>Даниленко</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+<tr><td>Семенов</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+</tbody></table></section>
+<section id="resp" class="card hidden"><h2>Свод по закреплённым</h2><table><thead><tr><th>Закреплён за</th><th>Всего строк</th><th>Работает</th><th>Работает ставок</th><th>Вакансии</th><th>Сокращение</th><th>Сокращение ставок</th></tr></thead><tbody>
+<tr><td>Без закрепления</td><td>78</td><td>68</td><td>68</td><td>0</td><td>10</td><td>10</td></tr>
+<tr><td>ЦУР</td><td>30</td><td>23</td><td>22</td><td>0</td><td>7</td><td>5,5</td></tr>
+<tr><td>Лебедева АМ</td><td>9</td><td>8</td><td>8</td><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>Соболев СВ</td><td>7</td><td>7</td><td>7</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>Кузьмина НВ</td><td>5</td><td>4</td><td>4</td><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>Ладина ДД</td><td>4</td><td>3</td><td>3</td><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>Викулова СК</td><td>3</td><td>2</td><td>2</td><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>Джурко ЕИ</td><td>2</td><td>1</td><td>0,5</td><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>Вакансия</td><td>2</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+<tr><td>ЦСТ</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+</tbody></table></section>
+<section id="half" class="card hidden"><h2>0,5 ставки — фамилии</h2><table><thead><tr><th>ФИО</th><th>Зам/Блок</th><th>Статус</th><th>Ставка</th><th>Закреплён за</th><th>Примечание</th></tr></thead><tbody>
+<tr><td>Брюзгина Ксения Константиновна</td><td>Викулова</td><td><span class="badge red">сокращение</span></td><td>0,5</td><td>ЦУР</td><td>Сокращение</td></tr>
+<tr><td>Трошина Алина Сергеевна</td><td>Викулова</td><td><span class="badge work">работает</span></td><td>0,5</td><td>ЦУР</td><td></td></tr>
+<tr><td>Филатова Варвара Андреевна</td><td>Викулова</td><td><span class="badge work">работает</span></td><td>0,5</td><td>Джурко ЕИ</td><td></td></tr>
+<tr><td>Дмитриева Милена Юрьевна</td><td>Викулова</td><td><span class="badge red">сокращение</span></td><td>0,5</td><td>ЦУР</td><td>сокращение</td></tr>
+<tr><td>Семечкина София Андреевна</td><td>Викулова</td><td><span class="badge work">работает</span></td><td>0,5</td><td>ЦУР</td><td></td></tr>
+<tr><td>Егиазарова Стелла Гарриевна</td><td>Викулова</td><td><span class="badge red">сокращение</span></td><td>0,5</td><td>ЦУР</td><td>сокращение</td></tr>
+</tbody></table></section>
+<section id="reduction" class="card hidden"><h2>Сокращение — список фамилий: 23 строки / 21,5 ставки</h2><table><thead><tr><th>ФИО</th><th>Зам/Блок</th><th>Ставка</th><th>Закреплён за</th><th>Примечание</th></tr></thead><tbody>
+<tr><td>Брюзгина Ксения Константиновна</td><td>Викулова</td><td>0,5</td><td>ЦУР</td><td>Сокращение</td></tr>
+<tr><td>Дмитриев Иван Максимович</td><td>Викулова</td><td>1</td><td>ЦУР</td><td>Сокращение</td></tr>
+<tr><td>Карасев Олег Робертович</td><td>Викулова</td><td>1</td><td>ЦУР</td><td>Сокращение</td></tr>
+<tr><td>Дмитриева Милена Юрьевна</td><td>Викулова</td><td>0,5</td><td>ЦУР</td><td>сокращение</td></tr>
+<tr><td>Куракин Филипп Андреевич</td><td>Викулова</td><td>1</td><td>Ладина ДД</td><td>сокращение</td></tr>
+<tr><td>Егиазарова Стелла Гарриевна</td><td>Викулова</td><td>0,5</td><td>ЦУР</td><td>сокращение</td></tr>
+<tr><td>Малькова Ольга Игоревна</td><td>Викулова</td><td>1</td><td>Лебедева АМ</td><td>сокращение</td></tr>
+<tr><td>Вакансия</td><td>Викулова</td><td>1</td><td>Вакансия</td><td>сокращение</td></tr>
+<tr><td>Милосердова Екатерина Николаевна</td><td>Викулова</td><td>1</td><td>ЦУР</td><td>сокращение</td></tr>
+<tr><td>Никольский Максим Олегович</td><td>Викулова</td><td>1</td><td>Кузьмина НВ</td><td>сокращение</td></tr>
+<tr><td>Севостьянова Ольга Владимировна</td><td>Викулова</td><td>1</td><td>ЦУР</td><td>сокращение</td></tr>
+<tr><td>Федорова Ольга Николаевна</td><td>Викулова</td><td>1</td><td>Джурко ЕИ</td><td>сокращение</td></tr>
+<tr><td>Тимофеев Александр Владимирович</td><td>Волосевич</td><td>1</td><td>Без закрепления</td><td>сокращение</td></tr>
+<tr><td>Эльдаров Муслим Арсаналиевич</td><td>Дивин</td><td>1</td><td>Без закрепления</td><td>сокращение</td></tr>
+<tr><td>Бакунов Вадим Александрович</td><td>Чернышин</td><td>1</td><td>Без закрепления</td><td>сокращение</td></tr>
+<tr><td>Жаров Павел Михайлович</td><td>Чернышин</td><td>1</td><td>Без закрепления</td><td>сокращение</td></tr>
+<tr><td>Наумова Анжелика Витальевна</td><td>Чернышин</td><td>1</td><td>Без закрепления</td><td>сокращение</td></tr>
+<tr><td>Чумакова Анастасия Андреевна</td><td>Чернышин</td><td>1</td><td>Без закрепления</td><td>сокращение</td></tr>
+<tr><td>Матросов Александр Николаевич</td><td>Попов</td><td>1</td><td>Без закрепления</td><td>сокращение</td></tr>
+<tr><td>Мефёд Елена Геннадьевна</td><td>Попов</td><td>1</td><td>Без закрепления</td><td>сокращение ТКО</td></tr>
+<tr><td>Вакансия главного аналитика</td><td>Викулова</td><td>1</td><td>Викулова СК</td><td>Сокращение; зачет Викуловой</td></tr>
+<tr><td>Немирова Надежда Владимировна</td><td>Семенов</td><td>1</td><td>Без закрепления</td><td>сокращение</td></tr>
+<tr><td>Воронин Дмитрий Олегович</td><td>Бондарева</td><td>1</td><td>Без закрепления</td><td>сокращение</td></tr>
+</tbody></table></section>
+<section id="vacancies" class="card hidden"><h2>Вакансии — список: 2</h2><table><thead><tr><th>ФИО/позиция</th><th>Зам/Блок</th><th>Ставка</th><th>Закреплён за</th><th>Комментарий</th></tr></thead><tbody>
+<tr><td>Вакансия</td><td>Вовк</td><td>1</td><td>Вакансия</td><td>Контрольное управление / Отдел инспектирования</td></tr>
+<tr><td>Вакансия ведущего специалиста</td><td>Даниленко</td><td>1</td><td>ЦСТ</td><td>Передается в ЦСТ (Центр содержания территорий)</td></tr>
+</tbody></table></section>
+<section id="rules" class="card hidden"><h2>Правила текущей версии</h2><ul><li>ВАКАНТ_Анашкин учитывается как Дивин.</li><li>Максаев Максим Вадимович относится к Дивину, не к Попову.</li><li>У Викуловой зафиксировано 6 сотрудников на 0,5 ставки.</li><li>Даниленко: вакансия ведущего специалиста передается в ЦСТ; вакансия главного аналитика относится к сокращению / зачёту Викуловой.</li><li>Сырой файл кадров не редактируем руками — правки фиксируем в рабочем реестре и changelog.</li></ul></section>
+</main>
+<script>
+function show(id,btn){document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+</script>
+</body></html>
