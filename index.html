@@ -10,28 +10,20 @@
 <script>
 (async()=>{
   const files=[
-    'payload/dashboard08.part01.b64',
-    'payload/dashboard08.part02.b64',
-    'payload/dashboard08.part03.b64',
-    'payload/dashboard08.part04.b64',
-    'payload/dashboard08.part05.b64',
-    'payload/dashboard08.part06.b64'
+    'payload/exact08.part01.b64',
+    'payload/exact08.part02.b64',
+    'payload/exact08.part03.b64',
+    'payload/exact08.part04.b64',
+    'payload/exact08.part05.b64'
   ];
-  const parts=await Promise.all(files.map(f=>fetch(f).then(r=>{
-    if(!r.ok) throw new Error(`${f}: ${r.status}`);
-    return r.text();
-  })));
+  const parts=await Promise.all(files.map(f=>fetch(f).then(r=>{if(!r.ok) throw new Error(`${f}: ${r.status}`); return r.text();})));
   const b64=parts.join('');
-  const bin=atob(b64);
-  const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
-  const ds=new DecompressionStream('gzip');
-  const html=await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
+  const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const html=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
   document.open();
   document.write(html);
   document.close();
-})().catch(e=>{
-  document.body.innerHTML='<pre style="white-space:pre-wrap;padding:24px">Ошибка загрузки дашборда: '+e+'</pre>';
-});
+})().catch(e=>{document.body.innerHTML='<pre style="white-space:pre-wrap;padding:24px">Ошибка загрузки дашборда: '+e+'</pre>';});
 </script>
 </body>
 </html>
