@@ -16,10 +16,66 @@
     'payload/exact08.part04.b64',
     'payload/exact08.part05.b64'
   ];
-  const parts=await Promise.all(files.map(f=>fetch(f).then(r=>{if(!r.ok) throw new Error(`${f}: ${r.status}`); return r.text();})));
-  const b64=parts.join('');
-  const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
-  const html=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  const parts=await Promise.all(files.map(f=>fetch(f,{cache:'no-store'}).then(r=>{if(!r.ok) throw new Error(`${f}: ${r.status}`); return r.text();})));
+  const bytes=Uint8Array.from(atob(parts.join('')),c=>c.charCodeAt(0));
+  let html=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+
+  html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
+    let D=JSON.parse(json);
+
+    // 1. Максаев — к Попову, не к Дивину.
+    for(const x of D){
+      if(x.f==='Максаев Максим Вадимович'){
+        x.z='Попов';
+        x.zf='Попов Антон Михайлович';
+        x.b='ТКО / Отдел сопровождения';
+        x.d='ТКО / Отдел сопровождения';
+        x.m='Перенесён из блока Дивина в блок Попова по сверке с Google-таблицей и Excel-реестром.';
+      }
+    }
+
+    // 2. Убираем техническую лишнюю строку Даниленко / Вакансия 2.
+    D=D.filter(x=>!(x.id==='EMP-0163' && x.f==='Вакансия главного аналитика'));
+
+    // 3. Мефёд — действующий сотрудник по Excel-реестру.
+    for(const x of D){
+      if(x.f==='Мефёд Елена Геннадьевна'){
+        x.s='работает';
+        x.m='Статус уточнён по сверке с Excel-реестром: действующий сотрудник.';
+      }
+    }
+
+    // 4. Добавляем недостающую позицию из Excel, строка 9: вакансия начальника отдела у Дивина.
+    if(!D.some(x=>x.f==='Вакансия начальника отдела' && x.z==='Дивин')){
+      D.push({
+        n:999,
+        id:'EMP-0174',
+        z:'Дивин',
+        zf:'Дивин Александр Сергеевич',
+        b:'Сектор анализа эффективности / Отдел сопровождения',
+        d:'Сектор анализа эффективности / Отдел сопровождения',
+        f:'Вакансия начальника отдела',
+        s:'вакансия',
+        r:1,
+        i:null,
+        m:'Вакансия начальника отдела добавлена из Excel-реестра 08.07.2026, строка 9; относится к Дивину.',
+        op:'Начальник отдела',
+        od:'5. Управление анализа и мониторинга деятельности органов местного самоуправления и муниципальных организаций',
+        sec:'Сектор анализа эффективности муниципальных организаций',
+        nd:'отдел сопровождения',
+        np:'начальник отдела',
+        o:null,
+        rem:null,
+        hrn:'Добавлено по сверке с Excel-реестром: строка 9, вакансия начальника отдела.',
+        hd:null
+      });
+    }
+
+    D.sort((a,b)=>(a.n||0)-(b.n||0));
+    D.forEach((x,i)=>x.n=i+1);
+    return 'const D='+JSON.stringify(D)+';\nconst HALF_EXTRA=';
+  });
+
   document.open();
   document.write(html);
   document.close();
