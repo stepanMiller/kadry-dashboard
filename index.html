@@ -121,15 +121,17 @@
       'Куракин':'26.06.2026','Матросов':'26.06.2026','Кирчигин':'13.07.2026'
     };
     for(const x of D){
-      const surname=(x.f||'').trim().split(/\s+/)[0];
+      const surname=String(x.f??'').trim().split(/\s+/)[0];
       if(Object.prototype.hasOwnProperty.call(reductionNotices,surname)){
         x.s='сокращение';
         const value=reductionNotices[surname];
         const note=value.includes('дата')||value.includes('отпуске')
           ? 'Сокращение: '+value+'.'
           : 'Сокращение: уведомление выдано '+value+'.';
-        if(!(x.m||'').includes(note)) x.m=((x.m||'').trim()+' '+note).trim();
-        if(!(x.hrn||'').includes(note)) x.hrn=((x.hrn||'').trim()+' '+note).trim();
+        const mText=String(x.m??'');
+        const hrnText=String(x.hrn??'');
+        if(!mText.includes(note)) x.m=(mText.trim()+' '+note).trim();
+        if(!hrnText.includes(note)) x.hrn=(hrnText.trim()+' '+note).trim();
       }
     }
 
