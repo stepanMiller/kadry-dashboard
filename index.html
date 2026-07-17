@@ -135,6 +135,14 @@
       }
     }
 
+    for(const x of D){
+      x.m=String(x.m??'');
+      x.hrn=String(x.hrn??'');
+      x.f=String(x.f??'');
+      x.b=String(x.b??'');
+      x.d=String(x.d??'');
+    }
+
     D.sort((a,b)=>(a.n||0)-(b.n||0));
     D.forEach((x,i)=>x.n=i+1);
     return 'const D='+JSON.stringify(D)+';\nconst HALF_EXTRA=';
