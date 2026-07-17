@@ -20,6 +20,8 @@
   const bytes=Uint8Array.from(atob(parts.join('')),c=>c.charCodeAt(0));
   let html=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
 
+  html=html.replace('актуальность 08.07.2026','актуальность 17.07.2026');
+
   html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
     let D=JSON.parse(json);
     const byName=name=>D.find(x=>x.f===name);
@@ -114,7 +116,7 @@
 
   html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,(all,json)=>{
     let V=JSON.parse(json);
-    V=V.filter(x=>x.n!==140 && x.id!=='VAC-SRC-140' && x.id!=='VAC-SRC-009' && x.id!=='VAC-SRC-034');
+    V=V.filter(x=>x.n!==140 && x.id!=='VAC-SRC-140');
 
     const required=[
       {n:7,id:'VAC-SRC-007',z:'УпрВнешКомм',zf:'Бурдуковская Р.З. (Упр. внешних коммуникаций и защиты информации)',
