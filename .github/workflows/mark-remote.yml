@@ -19,19 +19,22 @@ jobs:
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          marker = "const remoteSurnames=new Set(['Егиазарова','Семечкина','Носова','Логинова']);"
-          if marker not in s:
+          old = "const remoteSurnames=new Set(['Егиазарова','Семечкина','Носова','Логинова']);"
+          new = "const remoteSurnames=new Set(['Егиазарова','Семечкина','Носова','Логинова','Галицкая','Аносинская','Солодовникова']);"
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif new not in s:
               needle = "for(const x of D){x.m=String(x.m??'');"
-              insert = marker + "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];if(remoteSurnames.has(surname))x.rem='да';}" + needle
+              insert = new + "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];if(remoteSurnames.has(surname))x.rem='да';}" + needle
               if needle not in s:
                   raise SystemExit('Target fragment not found')
               s = s.replace(needle, insert, 1)
-              p.write_text(s, encoding='utf-8')
+          p.write_text(s, encoding='utf-8')
           PY
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "4189822+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Отметить дистанционную работу в карточках"
+          git diff --cached --quiet || git commit -m "Дополнить список дистанционных сотрудников"
           git push
