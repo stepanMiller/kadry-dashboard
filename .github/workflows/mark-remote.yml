@@ -1,4 +1,4 @@
-name: Mark remote employees
+name: Update dashboard staff flags
 
 on:
   push:
@@ -13,22 +13,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Mark remote employees in dashboard loader
+      - name: Update remote and reduction flags
         run: |
           python - <<'PY'
           from pathlib import Path
+
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
+
+          # Дистанционная работа.
           old = "const remoteSurnames=new Set(['Егиазарова','Семечкина','Носова','Логинова']);"
-          new = "const remoteSurnames=new Set(['Егиазарова','Семечкина','Носова','Логинова','Галицкая','Аносинская','Солодовникова']);"
+          remote = "const remoteSurnames=new Set(['Егиазарова','Семечкина','Носова','Логинова','Галицкая','Аносинская','Солодовникова']);"
           if old in s:
-              s = s.replace(old, new, 1)
-          elif new not in s:
+              s = s.replace(old, remote, 1)
+          elif remote not in s:
               needle = "for(const x of D){x.m=String(x.m??'');"
-              insert = new + "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];if(remoteSurnames.has(surname))x.rem='да';}" + needle
+              insert = remote + "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];if(remoteSurnames.has(surname))x.rem='да';}" + needle
               if needle not in s:
-                  raise SystemExit('Target fragment not found')
+                  raise SystemExit('Remote target fragment not found')
               s = s.replace(needle, insert, 1)
+
+          # Босянок уволилась: действующую карточку убираем; вакансия уже есть в источнике вакансий.
+          bos_old = "let D=JSON.parse(json);const byName=name=>D.find(x=>x.f===name);"
+          bos_new = "let D=JSON.parse(json);D=D.filter(x=>!String(x.f||'').startsWith('Босянок Валерия'));const byName=name=>D.find(x=>x.f===name);"
+          if bos_old in s:
+              s = s.replace(bos_old, bos_new, 1)
+
+          # Актуальный перечень сокращаемых сотрудников из файла от 22.07.2026.
+          marker = "for(const x of D){x.m=String(x.m??'');"
+          rule = (
+              "const currentReduction=new Set(['Малышева','Матросов','Куракин','Андросов','Бакунов','Тимофеев','Эльдаров','Егиазарова','Жаров','Карьёнова','Малькова','Милосердова','Наумова','Немирова','Никольский','Носова','Севостьянова','Федорова','Мефёд','Соломина','Воронин']);"
+              "const removedReduction=new Set(['Чумакова','Карасев','Брюзгина','Дмитриева','Кирчигин']);"
+              "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];if(currentReduction.has(surname)){x.s='сокращение';const t='Актуальный список сокращения по состоянию на 22.07.2026.';if(!String(x.m??'').includes(t))x.m=(String(x.m??'').trim()+' '+t).trim();}else if(removedReduction.has(surname)&&x.s==='сокращение'){x.s='работает';}}"
+          )
+          if rule not in s:
+              if marker not in s:
+                  raise SystemExit('Reduction target fragment not found')
+              s = s.replace(marker, rule + marker, 1)
+
           p.write_text(s, encoding='utf-8')
           PY
       - name: Commit changes
@@ -36,5 +58,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Дополнить список дистанционных сотрудников"
+          git diff --cached --quiet || git commit -m "Обновить актуальный список сокращения"
           git push
