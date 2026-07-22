@@ -33,23 +33,23 @@ jobs:
           if bos_old in s:
               s = s.replace(bos_old, bos_new, 1)
 
-          # Исправляем направление замен в актуальном списке сокращения.
-          old_rule = (
-              "const currentReduction=new Set(['Малышева','Матросов','Куракин','Андросов','Бакунов','Тимофеев','Эльдаров','Егиазарова','Жаров','Карьёнова','Малькова','Милосердова','Наумова','Немирова','Никольский','Носова','Севостьянова','Федорова','Мефёд','Соломина','Воронин']);"
-              "const removedReduction=new Set(['Чумакова','Карасев','Брюзгина','Дмитриева','Кирчигин']);"
-              "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];if(currentReduction.has(surname)){x.s='сокращение';const t='Актуальный список сокращения по состоянию на 22.07.2026.';if(!String(x.m??'').includes(t))x.m=(String(x.m??'').trim()+' '+t).trim();}else if(removedReduction.has(surname)&&x.s==='сокращение'){x.s='работает';}}"
-          )
-          new_rule = (
+          current_rule = (
               "const currentReduction=new Set(['Малышева','Матросов','Куракин','Чумакова','Бакунов','Тимофеев','Эльдаров','Егиазарова','Жаров','Карасев','Малькова','Милосердова','Наумова','Немирова','Никольский','Брюзгина','Дмитриева','Севостьянова','Федорова','Мефёд','Соломина','Воронин']);"
               "const removedReduction=new Set(['Андросов','Карьёнова','Носова','Кирчигин']);"
               "const replacementNotes={'Чумакова Анастасия Андреевна':'Заменила Андросова А.А.','Карасев Олег Робертович':'Заменил Карьёнову А.С.','Брюзгина Ксения Константиновна':'Ставка 0,5. Вместе с Дмитриевой М.Ю. заменили Носову К.А.','Дмитриева Милена Юрьевна':'Ставка 0,5. Вместе с Брюзгиной К.К. заменили Носову К.А.'};"
               "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];const t='Актуальный список сокращения по состоянию на 22.07.2026.';if(currentReduction.has(surname)){x.s='сокращение';if(!String(x.m??'').includes(t))x.m=(String(x.m??'').trim()+' '+t).trim();}else if(removedReduction.has(surname)&&x.s==='сокращение'){x.s='работает';x.m=String(x.m??'').replace(t,'').replace(/\\s{2,}/g,' ').trim();x.hrn=String(x.hrn??'').replace(t,'').replace(/\\s{2,}/g,' ').trim();}const rn=replacementNotes[x.f];if(rn){x.s='сокращение';x.m=String(x.m??'').replace(/Вместо Солонск[^.]*10\\.03\\.2026\\.?/gi,'').replace(/\\s{2,}/g,' ').trim();x.hrn=String(x.hrn??'').replace(/Вместо Солонск[^.]*10\\.03\\.2026\\.?/gi,'').replace(/\\s{2,}/g,' ').trim();if(!x.m.includes(rn))x.m=(x.m+' '+rn).trim();if(!x.hrn.includes(rn))x.hrn=(x.hrn+' '+rn).trim();}}"
           )
+          final_rule = (
+              "const currentReduction=new Set(['Матросов','Куракин','Чумакова','Бакунов','Тимофеев','Эльдаров','Егиазарова','Жаров','Карасев','Малькова','Милосердова','Наумова','Немирова','Никольский','Брюзгина','Дмитриева','Севостьянова','Федорова','Мефёд','Соломина','Воронин']);"
+              "const removedReduction=new Set(['Андросов','Карьёнова','Носова','Кирчигин','Малышева']);"
+              "const replacementNotes={'Чумакова Анастасия Андреевна':'Заменила Андросова А.А.','Карасев Олег Робертович':'Заменил Карьёнову А.С.','Брюзгина Ксения Константиновна':'Ставка 0,5. Вместе с Дмитриевой М.Ю. заменили Носову К.А.','Дмитриева Милена Юрьевна':'Ставка 0,5. Вместе с Брюзгиной К.К. заменили Носову К.А.'};"
+              "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];const t='Актуальный список сокращения по состоянию на 22.07.2026.';if(currentReduction.has(surname)){x.s='сокращение';if(!String(x.m??'').includes(t))x.m=(String(x.m??'').trim()+' '+t).trim();}else if(removedReduction.has(surname)&&x.s==='сокращение'){x.s='работает';x.m=String(x.m??'').replace(t,'').replace(/\\s{2,}/g,' ').trim();x.hrn=String(x.hrn??'').replace(t,'').replace(/\\s{2,}/g,' ').trim();}const rn=replacementNotes[x.f];if(rn){x.s='сокращение';x.m=String(x.m??'').replace(/Вместо Солонск[^.]*10\\.03\\.2026\\.?/gi,'').replace(/\\s{2,}/g,' ').trim();x.hrn=String(x.hrn??'').replace(/Вместо Солонск[^.]*10\\.03\\.2026\\.?/gi,'').replace(/\\s{2,}/g,' ').trim();if(!x.m.includes(rn))x.m=(x.m+' '+rn).trim();if(!x.hrn.includes(rn))x.hrn=(x.hrn+' '+rn).trim();}}let mal=D.find(x=>x.id==='EMP-0076')||D.find(x=>String(x.f||'').startsWith('Малышева Анна'));if(mal){Object.assign(mal,{f:'Вакансия — ведущий специалист',s:'вакансия',r:1,z:'ГКУ_ЦМКМО',zf:'ГКУ «ЦМКМО»',b:'ГКУ «ЦМКМО»',d:'ГКУ «ЦМКМО»',m:'Малышева А.С. уволилась; позиция стала вакантной и числится в ГКУ «ЦМКМО». Вакансия идёт под сокращение.',hrn:'Малышева А.С. уволилась; позиция стала вакантной.',rem:null});}"
+          )
 
-          if old_rule in s:
-              s = s.replace(old_rule, new_rule, 1)
-          elif new_rule not in s:
-              raise SystemExit('Reduction rule fragment not found')
+          if current_rule in s:
+              s = s.replace(current_rule, final_rule, 1)
+          elif final_rule not in s:
+              raise SystemExit('Current reduction rule fragment not found')
 
           p.write_text(s, encoding='utf-8')
           PY
@@ -58,5 +58,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Исправить актуальные замены в сокращении"
+          git diff --cached --quiet || git commit -m "Отразить вакансию ГКУ после увольнения Малышевой"
           git push
