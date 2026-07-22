@@ -1,0 +1,107 @@
+name: Audit dashboard data once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/audit-dashboard-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode and audit dashboard data
+        run: |
+          python - <<'PY'
+          import base64, gzip, json, re
+          from pathlib import Path
+
+          payload = ''.join(Path(f'payload/exact08.part{i:02d}.b64').read_text(encoding='utf-8').strip() for i in range(1, 6))
+          html = gzip.decompress(base64.b64decode(payload)).decode('utf-8')
+
+          def extract(name, next_name):
+              m = re.search(rf'const {name}=(\[.*?\]);\nconst {next_name}=', html, re.S)
+              if not m:
+                  raise SystemExit(f'{name} not found')
+              return json.loads(m.group(1))
+
+          D = extract('D', 'HALF_EXTRA')
+          H = extract('HALF_EXTRA', 'VACANCIES_SOURCE')
+
+          # Current transformations from index.html that affect employee cards/counts.
+          D = [x for x in D if not str(x.get('f') or '').startswith('Босянок Валерия')]
+
+          def by_name(name):
+              return next((x for x in D if x.get('f') == name), None)
+
+          D = [x for x in D if not (x.get('id') == 'EMP-0163' and x.get('f') in ('Вакансия главного аналитика', 'Вакансия 2'))]
+
+          x = next((x for x in D if x.get('id') == 'EMP-0055'), None) or next((x for x in D if x.get('f') == 'Вакансия' and x.get('z') == 'УпрВнешКомм'), None)
+          if x:
+              x.update({'f':'Соломеннова Д.В.','s':'работает','r':1,'z':'УпрВнешКомм'})
+
+          x = by_name('Суслова Юлия Ивановна')
+          if x:
+              x.update({'f':'Вакансия — ведущий специалист','s':'вакансия','r':1})
+
+          x = by_name('Амосова Ольга Васильевна')
+          if x:
+              x.update({'f':'Суслова Юлия Ивановна','s':'работает','r':1})
+
+          x = by_name('Мильдзихова Зарина Алановна')
+          if x:
+              x.update({'f':'Логинова Юлия Александровна','s':'работает','r':1})
+
+          x = next((x for x in D if x.get('id') == 'EMP-0162'), None) or next((x for x in D if x.get('f') == 'Вакансия ведущего специалиста'), None)
+          if x:
+              x.update({'f':'Тесленко Илья Денисович','s':'работает','r':1})
+
+          current_reduction = {'Малышева','Матросов','Куракин','Чумакова','Бакунов','Тимофеев','Эльдаров','Егиазарова','Жаров','Карасев','Малькова','Милосердова','Наумова','Немирова','Никольский','Брюзгина','Дмитриева','Севостьянова','Федорова','Мефёд','Соломина','Воронин'}
+          removed_reduction = {'Андросов','Карьёнова','Носова','Кирчигин'}
+          for x in D:
+              surname = str(x.get('f') or '').strip().split(' ')[0]
+              if surname in current_reduction:
+                  x['s'] = 'сокращение'
+              elif surname in removed_reduction and x.get('s') == 'сокращение':
+                  x['s'] = 'работает'
+
+          # Current HALF_EXTRA transformation.
+          for x in H:
+              if 'вакансия 0,5' in str(x.get('f') or '').lower():
+                  x.update({'z':'Чернышин','s':'вакансия','r':0.5})
+
+          def is_vacancy(x):
+              return str(x.get('s') or '').lower() == 'вакансия' or 'вакан' in str(x.get('f') or '').lower()
+
+          people_D = [x for x in D if not is_vacancy(x)]
+          people_H = [x for x in H if not is_vacancy(x)]
+          people = people_D + people_H
+
+          report = {
+              'D_total': len(D),
+              'D_people': len(people_D),
+              'H_total': len(H),
+              'H_people': len(people_H),
+              'people_total': len(people),
+              'rates_total': sum(float(x.get('r') or 0) for x in people),
+              'status_counts_D': {},
+              'people': sorted([{'id':x.get('id'),'name':x.get('f'),'status':x.get('s'),'rate':x.get('r'),'block':x.get('z')} for x in people], key=lambda x: str(x['name'])),
+              'half_rate_people': sorted([{'id':x.get('id'),'name':x.get('f'),'status':x.get('s'),'rate':x.get('r')} for x in people if float(x.get('r') or 0) != 1.0], key=lambda x: str(x['name'])),
+          }
+          for x in D:
+              k = str(x.get('s') or '')
+              report['status_counts_D'][k] = report['status_counts_D'].get(k, 0) + 1
+
+          Path('audit-current.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(json.dumps({k:report[k] for k in ('D_total','D_people','H_total','H_people','people_total','rates_total','status_counts_D','half_rate_people')}, ensure_ascii=False, indent=2))
+          PY
+      - name: Commit audit result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audit-current.json
+          git diff --cached --quiet || git commit -m "Сохранить разовую сверку численности"
+          git push
