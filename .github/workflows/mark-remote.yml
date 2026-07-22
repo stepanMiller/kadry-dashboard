@@ -1,0 +1,37 @@
+name: Mark remote employees
+
+on:
+  push:
+    paths:
+      - '.github/workflows/mark-remote.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mark remote employees in dashboard loader
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = "const remoteSurnames=new Set(['Егиазарова','Семечкина','Носова','Логинова']);"
+          if marker not in s:
+              needle = "for(const x of D){x.m=String(x.m??'');"
+              insert = marker + "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];if(remoteSurnames.has(surname))x.rem='да';}" + needle
+              if needle not in s:
+                  raise SystemExit('Target fragment not found')
+              s = s.replace(needle, insert, 1)
+              p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Отметить дистанционную работу в карточках"
+          git push
