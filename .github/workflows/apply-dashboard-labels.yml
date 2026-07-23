@@ -1,0 +1,60 @@
+name: Apply dashboard labels
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-dashboard-labels.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker="  const addon=`<style>"
+          patch=r'''  // DISPLAY_LABEL_PATCH_START
+  for(const source of [typeof D!=='undefined'?D:[],typeof HALF_EXTRA!=='undefined'?HALF_EXTRA:[],typeof VACANCIES_SOURCE!=='undefined'?VACANCIES_SOURCE:[]]){
+    for(const x of source){
+      const status=String(x.s||'').toLowerCase();
+      const state=String(x.state||'').toLowerCase();
+      const name=String(x.f||'');
+      const isVacancy=name.toLowerCase().includes('вакан');
+      const isReduction=x.reduction===true||status==='сокращение';
+      if(isVacancy&&isReduction&&!name.includes('/ сокращение')){
+        x.f=name.replace(/^Вакансия\s*(?:—|-)?\s*/i,'Вакансия / сокращение — ');
+      }
+      if(status.includes('отпуск по уходу')||state.includes('отпуск по уходу')){
+        x.s='декрет';
+        x.state='Декрет';
+      }
+    }
+  }
+  // DISPLAY_LABEL_PATCH_END
+
+'''
+          if 'DISPLAY_LABEL_PATCH_START' not in s:
+              if marker not in s:
+                  raise SystemExit('Insertion marker not found')
+              s=s.replace(marker,patch+marker,1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Обновить подписи вакансий и декрета"
+            git push
+          fi
