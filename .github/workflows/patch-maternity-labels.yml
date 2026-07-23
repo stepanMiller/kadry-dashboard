@@ -1,0 +1,50 @@
+name: Patch maternity labels
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-maternity-labels.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch dashboard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = "  const addon=`<style>"
+          patch = r'''  // MATERNITY_LABELS_START
+  for(const source of [typeof D!=='undefined'?D:[],typeof HALF_EXTRA!=='undefined'?HALF_EXTRA:[],typeof VACANCIES_SOURCE!=='undefined'?VACANCIES_SOURCE:[]]){
+    for(const x of source){
+      const state=String(x.state||'').toLowerCase();
+      const status=String(x.s||'').toLowerCase();
+      if(state.includes('уход')&&state.includes('реб')||status.includes('уход')&&status.includes('реб')){
+        x.s='декрет';
+        x.state='Декрет';
+      }
+    }
+  }
+  // MATERNITY_LABELS_END
+
+'''
+          if 'MATERNITY_LABELS_START' not in s:
+              if marker not in s:
+                  raise SystemExit('Insertion marker not found')
+              s = s.replace(marker, patch + marker, 1)
+              p.write_text(s, encoding='utf-8')
+          Path('.github/workflows/patch-maternity-labels.yml').unlink()
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/patch-maternity-labels.yml
+          git commit -m "Показывать отпуск по уходу как декрет"
+          git push
