@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Update remote and reduction flags
+      - name: Apply final corrections for 23.07.2026
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -21,36 +21,90 @@ jobs:
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
 
-          # Дистанционная работа.
-          old = "const remoteSurnames=new Set(['Егиазарова','Семечкина','Носова','Логинова']);"
-          remote = "const remoteSurnames=new Set(['Егиазарова','Семечкина','Носова','Логинова','Галицкая','Аносинская','Солодовникова']);"
-          if old in s:
-              s = s.replace(old, remote, 1)
+          start = '  // PATCH_23_07_START\n'
+          end = '  // PATCH_23_07_END\n'
+          if start in s and end in s:
+              left, rest = s.split(start, 1)
+              _, right = rest.split(end, 1)
+              s = left + right
 
-          # Босянок уволилась: действующую карточку убираем; вакансия остается.
-          bos_old = "let D=JSON.parse(json);const byName=name=>D.find(x=>x.f===name);"
-          bos_new = "let D=JSON.parse(json);D=D.filter(x=>!String(x.f||'').startsWith('Босянок Валерия'));const byName=name=>D.find(x=>x.f===name);"
-          if bos_old in s:
-              s = s.replace(bos_old, bos_new, 1)
+          marker = '  const addon=`'
+          if marker not in s:
+              raise SystemExit('Insertion marker not found in index.html')
 
-          old_rule = (
-              "const currentReduction=new Set(['Матросов','Куракин','Чумакова','Бакунов','Тимофеев','Эльдаров','Егиазарова','Жаров','Карасев','Малькова','Милосердова','Наумова','Немирова','Никольский','Брюзгина','Дмитриева','Севостьянова','Федорова','Мефёд','Соломина','Воронин']);"
-              "const removedReduction=new Set(['Андросов','Карьёнова','Носова','Кирчигин','Малышева']);"
-              "const replacementNotes={'Чумакова Анастасия Андреевна':'Заменила Андросова А.А.','Карасев Олег Робертович':'Заменил Карьёнову А.С.','Брюзгина Ксения Константиновна':'Ставка 0,5. Вместе с Дмитриевой М.Ю. заменили Носову К.А.','Дмитриева Милена Юрьевна':'Ставка 0,5. Вместе с Брюзгиной К.К. заменили Носову К.А.'};"
-              "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];const t='Актуальный список сокращения по состоянию на 22.07.2026.';if(currentReduction.has(surname)){x.s='сокращение';if(!String(x.m??'').includes(t))x.m=(String(x.m??'').trim()+' '+t).trim();}else if(removedReduction.has(surname)&&x.s==='сокращение'){x.s='работает';x.m=String(x.m??'').replace(t,'').replace(/\\s{2,}/g,' ').trim();x.hrn=String(x.hrn??'').replace(t,'').replace(/\\s{2,}/g,' ').trim();}const rn=replacementNotes[x.f];if(rn){x.s='сокращение';x.m=String(x.m??'').replace(/Вместо Солонск[^.]*10\\.03\\.2026\\.?/gi,'').replace(/\\s{2,}/g,' ').trim();x.hrn=String(x.hrn??'').replace(/Вместо Солонск[^.]*10\\.03\\.2026\\.?/gi,'').replace(/\\s{2,}/g,' ').trim();if(!x.m.includes(rn))x.m=(x.m+' '+rn).trim();if(!x.hrn.includes(rn))x.hrn=(x.hrn+' '+rn).trim();}}let mal=D.find(x=>x.id==='EMP-0076')||D.find(x=>String(x.f||'').startsWith('Малышева Анна'));if(mal){Object.assign(mal,{f:'Вакансия — ведущий специалист',s:'вакансия',r:1,z:'ГКУ_ЦМКМО',zf:'ГКУ «ЦМКМО»',b:'ГКУ «ЦМКМО»',d:'ГКУ «ЦМКМО»',m:'Малышева А.С. уволилась; позиция стала вакантной и числится в ГКУ «ЦМКМО». Вакансия идёт под сокращение.',hrn:'Малышева А.С. уволилась; позиция стала вакантной.',rem:null});}"
-          )
-          new_rule = (
-              "const currentReduction=new Set(['Матросов','Куракин','Чумакова','Бакунов','Тимофеев','Эльдаров','Егиазарова','Жаров','Карасев','Малькова','Милосердова','Наумова','Немирова','Никольский','Брюзгина','Дмитриева','Севостьянова','Федорова','Мефёд','Соломина','Воронин']);"
-              "const removedReduction=new Set(['Андросов','Карьёнова','Носова','Кирчигин','Малышева']);"
-              "const replacementNotes={'Чумакова Анастасия Андреевна':'Заменила Андросова А.А.','Карасев Олег Робертович':'Заменил Карьёнову А.С.','Брюзгина Ксения Константиновна':'Ставка 0,5. Вместе с Дмитриевой М.Ю. заменили Носову К.А.','Дмитриева Милена Юрьевна':'Ставка 0,5. Вместе с Брюзгиной К.К. заменили Носову К.А.'};"
-              "for(const x of D){const surname=String(x.f??'').trim().split(/\\s+/)[0];const t='Актуальный список сокращения по состоянию на 22.07.2026.';if(currentReduction.has(surname)){x.s='сокращение';if(!String(x.m??'').includes(t))x.m=(String(x.m??'').trim()+' '+t).trim();}else if(removedReduction.has(surname)&&x.s==='сокращение'){x.s='работает';x.m=String(x.m??'').replace(t,'').replace(/\\s{2,}/g,' ').trim();x.hrn=String(x.hrn??'').replace(t,'').replace(/\\s{2,}/g,' ').trim();}const rn=replacementNotes[x.f];if(rn){x.s='сокращение';x.m=String(x.m??'').replace(/Вместо Солонск[^.]*10\\.03\\.2026\\.?/gi,'').replace(/\\s{2,}/g,' ').trim();x.hrn=String(x.hrn??'').replace(/Вместо Солонск[^.]*10\\.03\\.2026\\.?/gi,'').replace(/\\s{2,}/g,' ').trim();if(!x.m.includes(rn))x.m=(x.m+' '+rn).trim();if(!x.hrn.includes(rn))x.hrn=(x.hrn+' '+rn).trim();}}let mal=D.find(x=>x.id==='EMP-0076')||D.find(x=>String(x.f||'').startsWith('Малышева Анна'))||D.find(x=>String(x.f||'').startsWith('Вакансия — ведущий специалист')&&String(x.m||'').includes('Малышева'));if(mal){Object.assign(mal,{f:'Малышева Анна Сергеевна',s:'работает',r:1,z:'Чернышин',zf:'Чернышин Павел Владимирович',b:'ЦОД / Отдел инспектирования',d:'ЦОД / Отдел инспектирования',m:'Вместо Зимина; срочный контракт до 31.07.2026. Перешла из ГКУ, где освободившаяся вакансия подана на сокращение.',hrn:'Малышева А.С. работает на позиции Зимина; отдельная вакансия ГКУ подана на сокращение.',rem:null});}"
-          )
+          patch = r'''  // PATCH_23_07_START
+          html=html.replace('актуальность 17.07.2026','актуальность 23.07.2026');
+          html=html.replace('актуальность 08.07.2026','актуальность 23.07.2026');
+          {
+            let vacancy141Seen=false;
+            const patchArray=(name,edit)=>{
+              const re=new RegExp('const '+name+'=(\\[.*?\\]);','s');
+              html=html.replace(re,(all,json)=>'const '+name+'='+JSON.stringify(edit(JSON.parse(json)))+';');
+            };
+            const normalize=(arr)=>{
+              arr=arr.filter(x=>String(x.f||'').trim()!=='Матросов Александр Николаевич');
+              for(const x of arr){
+                const name=String(x.f||'').trim();
+                const lname=name.toLowerCase();
+                const position=(String(x.np||'')+' '+String(x.op||'')).toLowerCase();
+                const n=Number(x.n);
+                if(name==='Мефёд Елена Геннадьевна'){
+                  x.s='сокращение';
+                  x.z='Попов';
+                  x.zf='Попов Антон Михайлович';
+                  x.m='Сокращение. Уведомление выдано 29.06.2026.';
+                  x.hrn='Сокращение: уведомление выдано 29.06.2026. Приём 09.02.2026; Боброва Е.И. уволена 06.02.2026.';
+                }
+                if(n===122 && lname.includes('вакан') && (lname.includes('аналитик')||position.includes('аналитик'))){
+                  x.s='вакансия';
+                  x.z='Попов';
+                  x.zf='Попов Антон Михайлович';
+                  x.m='Вакансия главного аналитика, позиция № 122 реестра от 17.07.2026. Под сокращение не идёт.';
+                  x.hrn='Соломина Т.М. уволена 15.06.2026.';
+                }
+                if(n===141 && (lname.includes('вакан')||String(x.id||'').includes('141'))){
+                  vacancy141Seen=true;
+                  Object.assign(x,{
+                    id:'VAC-SRC-141',
+                    z:'Вне распределения по замам',
+                    zf:'Без закрепления за заместителем',
+                    b:'Отдел сопровождения',
+                    d:'Отдел сопровождения',
+                    f:'Вакансия — главный аналитик',
+                    s:'сокращение',
+                    r:1,
+                    i:null,
+                    m:'Вакансия главного аналитика, позиция № 141 реестра от 17.07.2026. Введена 01.05.2026. Идёт под сокращение; к блоку Попова не относится.',
+                    op:null,
+                    od:null,
+                    sec:null,
+                    nd:'отдел сопровождения',
+                    np:'главный аналитик',
+                    o:null,
+                    rem:null,
+                    hrn:'Вакансия введена 01.05.2026; добавлена в реестр 22.06.2026.',
+                    hd:null
+                  });
+                }
+              }
+              return arr;
+            };
+            patchArray('D',normalize);
+            patchArray('HALF_EXTRA',normalize);
+            patchArray('VACANCIES_SOURCE',arr=>{
+              arr=normalize(arr);
+              if(!vacancy141Seen){
+                arr.push({n:141,id:'VAC-SRC-141',z:'Вне распределения по замам',zf:'Без закрепления за заместителем',b:'Отдел сопровождения',d:'Отдел сопровождения',f:'Вакансия — главный аналитик',s:'сокращение',r:1,i:null,m:'Вакансия главного аналитика, позиция № 141 реестра от 17.07.2026. Введена 01.05.2026. Идёт под сокращение; к блоку Попова не относится.',op:null,od:null,sec:null,nd:'отдел сопровождения',np:'главный аналитик',o:null,rem:null,hrn:'Вакансия введена 01.05.2026; добавлена в реестр 22.06.2026.',hd:null});
+                vacancy141Seen=true;
+              }
+              return arr;
+            });
+          }
+          // PATCH_23_07_END
+          '''
 
-          if old_rule in s:
-              s = s.replace(old_rule, new_rule, 1)
-          elif new_rule not in s:
-              raise SystemExit('Malyшева correction fragment not found')
-
+          s = s.replace(marker, patch + marker, 1)
+          s = s.replace('Кадровый_дашборд_17-07-2026.xls', 'Кадровый_дашборд_23-07-2026.xls')
           p.write_text(s, encoding='utf-8')
           PY
       - name: Commit changes
@@ -58,5 +112,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Восстановить Малышеву как работающего сотрудника"
+          git diff --cached --quiet || git commit -m "Обновить кадровый дашборд на 23.07.2026"
           git push
