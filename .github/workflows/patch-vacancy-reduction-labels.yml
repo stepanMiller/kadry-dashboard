@@ -1,0 +1,49 @@
+name: Patch vacancy reduction labels
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-vacancy-reduction-labels.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch dashboard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = "  const addon=`<style>"
+          patch = r'''  // VACANCY_REDUCTION_LABELS_START
+  for(const source of [typeof D!=='undefined'?D:[],typeof HALF_EXTRA!=='undefined'?HALF_EXTRA:[],typeof VACANCIES_SOURCE!=='undefined'?VACANCIES_SOURCE:[]]){
+    for(const x of source){
+      const isVacancy=String(x.f||'').toLowerCase().includes('вакан');
+      const isReduction=x.reduction===true||String(x.s||'').toLowerCase()==='сокращение';
+      if(isVacancy&&isReduction&&!String(x.f||'').includes('/ сокращение')){
+        x.f=String(x.f||'').replace(/^Вакансия\s*(?:—|-)?\s*/i,'Вакансия / сокращение — ');
+      }
+    }
+  }
+  // VACANCY_REDUCTION_LABELS_END
+
+'''
+          if 'VACANCY_REDUCTION_LABELS_START' not in s:
+              if marker not in s:
+                  raise SystemExit('Insertion marker not found')
+              s = s.replace(marker, patch + marker, 1)
+              p.write_text(s, encoding='utf-8')
+          Path('.github/workflows/patch-vacancy-reduction-labels.yml').unlink()
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/patch-vacancy-reduction-labels.yml
+          git commit -m "Показать сокращаемые вакансии через слэш"
+          git push
