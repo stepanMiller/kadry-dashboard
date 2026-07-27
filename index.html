@@ -156,34 +156,26 @@ html=html.replace('актуальность 08.07.2026','актуальност�
 
   // HR_CORRECTIONS_27_07_START
   {
-    let kuzRecord=null;
     let employeeCount=0;
     html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
       const rows=JSON.parse(json);
       const lomakin=rows.find(x=>x.id==='STAFF-173'||x.f==='Ломакин Андрей Юрьевич');
       if(!lomakin) throw new Error('Ломакин А.Ю. не найден в реестре сотрудников');
       Object.assign(lomakin,{z:'УпрВнешКомм',zf:'Бурдуковская Р.З. (Упр. внешних коммуникаций и защиты информации)',m:'Принят вместо Дуденковой Н.Д. по кадровому уточнению от 27.07.2026.',hrn:'Ломакин А.Ю. принят вместо Дуденковой Н.Д.'});
-      const kuzIndex=rows.findIndex(x=>x.id==='STAFF-172'||x.f==='Кузнецова Зульфия Исламовна');
-      if(kuzIndex<0) throw new Error('Кузнецова З.И. не найдена в реестре сотрудников');
-      kuzRecord={...rows[kuzIndex]};
-      rows.splice(kuzIndex,1);
       employeeCount=rows.length;
       return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
     });
     html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,(all,json)=>{
-      const rows=JSON.parse(json);
-      const staff149=rows.find(x=>x.id==='STAFF-149'||String(x.alias||'').includes('после Дуденковой Н.Д.'));
-      if(!staff149) throw new Error('Позиция STAFF-149 не найдена');
-      Object.assign(staff149,{f:'Вакансия — Главный специалист',alias:'Вакансия — Главный специалист',type:'Вакансия',state:'Вакансия',s:'вакансия',reduction:false,z:'УпрВнешКомм',zf:'Бурдуковская Р.З. (Упр. внешних коммуникаций и защиты информации)',m:'Свободная позиция блока УпрВнешКомм сохранена в общем учёте. Ломакин А.Ю. принят вместо Дуденковой Н.Д.',hrn:'Ломакин А.Ю. принят вместо Дуденковой Н.Д.; позиция из общего реестра не исключается.'});
+      let rows=JSON.parse(json);
+      rows=rows.filter(x=>!(x.id==='STAFF-149'||String(x.alias||'').includes('после Дуденковой Н.Д.')));
       const vacancy141=rows.find(x=>x.id==='STAFF-236'||x.id==='VAC-SRC-141'||Number(x.regNo)===141||Number(x.n)===141);
       if(!vacancy141) throw new Error('Вакансия главного аналитика № 141 не найдена');
       Object.assign(vacancy141,{z:'Викулова',zf:'Викулова Светлана Константиновна',m:'Вакансия главного аналитика, позиция № 141 реестра от 17.07.2026. Введена 01.05.2026. Идёт под сокращение. Закреплена за Викуловой С.К.',hrn:'Вакансия введена 01.05.2026; добавлена в реестр 22.06.2026. Закреплена за Викуловой С.К.'});
-      if(!kuzRecord) throw new Error('Не удалось перенести позицию Кузнецовой З.И. в вакансии');
-      if(!rows.some(x=>x.id==='STAFF-172')){
-        rows.push({...kuzRecord,type:'Вакансия',f:'Вакансия — Главный специалист',alias:'Вакансия (после Кузнецовой З.И.)',state:'Вакансия',s:'вакансия',reduction:false,z:'*Викулова',zf:'*Викулова С.К.',m:'Кузнецова З.И. уволилась; позиция стала вакантной.',hrn:'Кузнецова З.И. уволилась; позиция переведена в вакансии.',rem:null});
+      if(!rows.some(x=>x.id==='VAC-KUZNETSOVA-NS')){
+        rows.push({n:998,id:'VAC-KUZNETSOVA-NS',type:'Вакансия',f:'Вакансия — Главный специалист',alias:'Вакансия (после Кузнецовой Н.С.)',state:'Вакансия',s:'вакансия',reduction:false,r:1,z:'Викулова',zf:'Викулова Светлана Константиновна',b:'Управление по взаимодействию с органами исполнительной власти / Отдел сопровождения',d:'Управление по взаимодействию с органами исполнительной власти / Отдел сопровождения',np:'Главный специалист',m:'Кузнецова Наталья Сергеевна уволилась; позиция стала вакантной.',hrn:'Кузнецова Н.С. уволилась; позиция переведена в вакансии.',op:null,od:null,sec:null,nd:'Отдел сопровождения',o:null,rem:null,hd:null,i:null});
       }
       rows.sort((a,b)=>(Number(a.n)||9999)-(Number(b.n)||9999));
-      if(employeeCount!==137||rows.length!==8||employeeCount+rows.length!==145) throw new Error('Контрольные итоги не совпали: '+employeeCount+' сотрудников, '+rows.length+' вакансий');
+      if(employeeCount!==138||rows.length!==7||employeeCount+rows.length!==145) throw new Error('Контрольные итоги не совпали: '+employeeCount+' сотрудников, '+rows.length+' вакансий');
       return 'const VACANCIES_SOURCE='+JSON.stringify(rows)+';\nlet viewMode=';
     });
   }
