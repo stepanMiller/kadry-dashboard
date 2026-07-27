@@ -183,43 +183,48 @@ html=html.replace('актуальность 08.07.2026','актуальност�
 
   // DUDENKOVA_NEMIROVA_27_07_START
   {
-    let vacancyAfterDudenkova=null;
+    const transitionReached=Date.now()>=Date.UTC(2026,8,26);
     html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
-      const rows=JSON.parse(json);
+      let rows=JSON.parse(json);
       const nemirova=rows.find(x=>String(x.f||'').trim().startsWith('Немирова '));
       if(!nemirova) throw new Error('Немирова не найдена в реестре сотрудников');
-      nemirova.s='работает';
-      nemirova.state='Работа';
-      nemirova.reduction=false;
-      nemirova.m=String(nemirova.m||'').replace(/Актуальный список сокращения[^.]*\./gi,'').replace(/Сокращение:[^.]*\./gi,'').replace(/\s{2,}/g,' ').trim();
-      nemirova.hrn=String(nemirova.hrn||'').replace(/Актуальный список сокращения[^.]*\./gi,'').replace(/Сокращение:[^.]*\./gi,'').replace(/\s{2,}/g,' ').trim();
+      Object.assign(nemirova,{
+        s:'работает',state:'Работа',reduction:false,
+        m:'Работает. Из списка сокращения исключена: вместо её ставки под сокращение после 25.09.2026 идёт ставка Дуденковой Н.Д., временно занятая Ломакиным А.Ю.',
+        hrn:'Немирова Н.В. остаётся работающим сотрудником и под сокращение не попадает.'
+      });
       const lomakin=rows.find(x=>x.id==='STAFF-173'||x.f==='Ломакин Андрей Юрьевич');
-      if(lomakin){
-        lomakin.m=String(lomakin.m||'').replace(/Принят вместо Дуденковой Н\.Д\.[^.]*/gi,'Кадровая привязка уточнена 27.07.2026').replace(/\s{2,}/g,' ').trim();
-        lomakin.hrn=String(lomakin.hrn||'').replace(/Ломакин А\.Ю\. принят вместо Дуденковой Н\.Д\.?/gi,'Не является замещением Дуденковой Н.Д.').replace(/\s{2,}/g,' ').trim();
-      }
+      if(!lomakin) throw new Error('Ломакин А.Ю. не найден в реестре сотрудников');
+      Object.assign(lomakin,{
+        z:'УпрВнешКомм',
+        zf:'Бурдуковская Р.З. (Упр. внешних коммуникаций и защиты информации)',
+        s:'работает',state:'Работа',reduction:true,
+        m:'Занимает ставку Дуденковой Н.Д. до 25.09.2026 включительно. С 26.09.2026 ставка становится вакансией под сокращение вместо ставки Немировой Н.В.',
+        hrn:'Временное замещение ставки Дуденковой Н.Д. до 25.09.2026; далее ставка под сокращение вместо Немировой Н.В.'
+      });
+      if(transitionReached) rows=rows.filter(x=>x!==lomakin);
       return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
     });
     html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,(all,json)=>{
-      const rows=JSON.parse(json);
-      vacancyAfterDudenkova=rows.find(x=>x.id==='STAFF-149'||x.id==='VAC-DUDENKOVA'||String(x.alias||'').includes('после Дуденковой Н.Д.'));
-      const vacancy={
-        n:149,id:'VAC-DUDENKOVA',type:'Вакансия',
-        f:'Вакансия — главный специалист',
-        alias:'Вакансия (после Дуденковой Н.Д.)',
-        state:'Вакансия',s:'вакансия / сокращение',reduction:true,r:1,
-        z:'УпрВнешКомм',
-        zf:'Бурдуковская Р.З. (Упр. внешних коммуникаций и защиты информации)',
-        b:'Управление информационного планирования и внешних коммуникаций',
-        d:'Управление информационного планирования и внешних коммуникаций',
-        np:'Главный специалист',
-        m:'Дуденкова Н.Д. уволилась. Освободившаяся ставка идёт под сокращение.',
-        hrn:'Вакансия после увольнения Дуденковой Н.Д.; ставка включена в сокращение вместо Немировой.',
-        op:null,od:'4. Управление информационного планирования и внешних коммуникаций',
-        sec:null,nd:null,o:null,rem:null,hd:null,i:null
-      };
-      if(vacancyAfterDudenkova) Object.assign(vacancyAfterDudenkova,vacancy);
-      else rows.push(vacancy);
+      let rows=JSON.parse(json);
+      rows=rows.filter(x=>!(x.id==='STAFF-149'||x.id==='VAC-DUDENKOVA'||String(x.alias||'').includes('после Дуденковой Н.Д.')));
+      if(transitionReached){
+        rows.push({
+          n:149,id:'VAC-DUDENKOVA',type:'Вакансия',
+          f:'Вакансия — главный специалист',
+          alias:'Вакансия (ставка Дуденковой Н.Д.)',
+          state:'Вакансия',s:'вакансия / сокращение',reduction:true,r:1,
+          z:'УпрВнешКомм',
+          zf:'Бурдуковская Р.З. (Упр. внешних коммуникаций и защиты информации)',
+          b:'Управление информационного планирования и внешних коммуникаций',
+          d:'Управление информационного планирования и внешних коммуникаций',
+          np:'Главный специалист',
+          m:'Ломакин А.Ю. занимал ставку Дуденковой Н.Д. до 25.09.2026. С 26.09.2026 ставка вакантна и идёт под сокращение вместо ставки Немировой Н.В.',
+          hrn:'Вакансия с 26.09.2026; ставка включена в сокращение вместо Немировой Н.В.',
+          op:null,od:'4. Управление информационного планирования и внешних коммуникаций',
+          sec:null,nd:null,o:null,rem:null,hd:'2026-09-26',i:null
+        });
+      }
       rows.sort((a,b)=>(Number(a.n)||9999)-(Number(b.n)||9999));
       return 'const VACANCIES_SOURCE='+JSON.stringify(rows)+';\nlet viewMode=';
     });
