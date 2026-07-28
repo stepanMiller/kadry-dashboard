@@ -233,7 +233,7 @@ html=html.replace('актуальность 08.07.2026','актуальност�
 
   // NEMIROVA_MANAGER_28_07_START
   {
-    html=html.replace(/const D=(\\[.*?\\]);\\nconst HALF_EXTRA=/s,(all,json)=>{
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
       const rows=JSON.parse(json);
       const nemirova=rows.find(x=>String(x.f||'').trim().startsWith('Немирова '));
       if(!nemirova) throw new Error('Немирова не найдена для смены привязки');
@@ -244,7 +244,7 @@ html=html.replace('актуальность 08.07.2026','актуальност�
         m:'Работает. Относится к Чернышину П.В. Из списка сокращения исключена: вместо её ставки под сокращение после 25.09.2026 идёт ставка Дуденковой Н.Д., временно занятая Ломакиным А.Ю.',
         hrn:'Немирова Н.В. относится к Чернышину П.В.; работает и под сокращение не попадает.'
       });
-      return 'const D='+JSON.stringify(rows)+';\\nconst HALF_EXTRA=';
+      return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
     });
   }
   // NEMIROVA_MANAGER_28_07_END
@@ -296,6 +296,44 @@ html=html.replace('актуальность 08.07.2026','актуальност�
     });
   }
   // CST_MANAGERS_28_07_END
+
+
+  // CST_AND_MANAGER_ASSIGNMENTS_28_07_START
+  {
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
+      const rows=JSON.parse(json);
+      const byName=name=>{
+        const row=rows.find(x=>String(x.f||'').trim()===name);
+        if(!row) throw new Error('Сотрудник не найден для кадровой привязки: '+name);
+        return row;
+      };
+      const addNote=(row,note)=>{
+        const m=String(row.m||'').trim();
+        const hrn=String(row.hrn||'').trim();
+        if(!m.includes(note)) row.m=(m+' '+note).trim();
+        if(!hrn.includes(note)) row.hrn=(hrn+' '+note).trim();
+      };
+
+      for(const name of ['Дудова Олеся Николаевна','Киселева Наталья Глебовна']){
+        const row=byName(name);
+        Object.assign(row,{z:'*Викулова',zf:'*Викулова'});
+        addNote(row,'Управленческая привязка: *Викулова С.К. (уточнение 28.07.2026).');
+      }
+
+      for(const name of ['Вялова Екатерина Борисовна','Бодрова Юлия Владимировна','Ломакин Андрей Юрьевич','Тесленко Илья Денисович','Конова Ксения Руслановна']){
+        const row=byName(name);
+        Object.assign(row,{z:'Дивин',zf:'Дивин Александр Сергеевич',project:'ЦСТ',i:'ЦСТ'});
+        addNote(row,'Ответственный за ЦСТ; управленческая привязка — Дивин А.С. (уточнение 28.07.2026).');
+      }
+
+      const teshchenko=byName('Тещенко Ирина Владимировна');
+      Object.assign(teshchenko,{z:'Бондарева',zf:'Бондарева Полина Вячеславовна',project:'ЦСТ',i:'ЦСТ'});
+      addNote(teshchenko,'Сотрудник Бондаревой П.В.; отметка ЦСТ (уточнение 28.07.2026).');
+
+      return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
+    });
+  }
+  // CST_AND_MANAGER_ASSIGNMENTS_28_07_END
 
   const addon=`<style>#dashActions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin:12px 0 16px;position:relative;z-index:5}#dashActions button{border:0;border-radius:12px;padding:12px 18px;font:600 15px Arial,sans-serif;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.12);cursor:pointer}#excelExportBtn{background:#1f7a4c}#smsReductionBtn{background:#244b7a}#smsModal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9999;padding:18px;align-items:center;justify-content:center}#smsModal.open{display:flex}.smsBox{width:min(760px,100%);background:#fff;border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.25)}.smsBox h3{margin:0 0 12px}.smsBox textarea{width:100%;min-height:380px;box-sizing:border-box;border:1px solid #d1d5db;border-radius:10px;padding:12px;font:14px/1.45 Arial,sans-serif}.smsBtns{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}.smsBtns button{border:0;border-radius:10px;padding:10px 14px;cursor:pointer}.smsCopy{background:#244b7a;color:#fff}.smsClose{background:#e5e7eb;color:#111827}@media(max-width:700px){#dashActions{justify-content:stretch}#dashActions button{width:100%;font-size:16px;padding:14px}.smsBox textarea{min-height:55vh}}</style><script>(function(){function clean(t){return String(t||'').replace(/\\s+/g,' ').trim()}function visible(el){const st=getComputedStyle(el);return st.display!=='none'&&st.visibility!=='hidden'&&el.offsetParent!==null}function pickTable(){const tables=[...document.querySelectorAll('table')].filter(visible);return tables.sort((a,b)=>[...b.querySelectorAll('tbody tr')].filter(visible).length-[...a.querySelectorAll('tbody tr')].filter(visible).length)[0]}function exportExcel(){const table=pickTable();if(!table){alert('Таблица для выгрузки не найдена');return}const headers=[...table.querySelectorAll('thead th')].map(x=>clean(x.innerText));const rows=[...table.querySelectorAll('tbody tr')].filter(visible).map(tr=>[...tr.querySelectorAll('th,td')].map(td=>clean(td.innerText)));if(!rows.length){alert('В текущей выборке нет строк');return}const cols=Math.max(headers.length,...rows.map(r=>r.length));const head=headers.length?headers:Array.from({length:cols},(_,i)=>'Колонка '+(i+1));const esc=t=>clean(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');let body='<table border="1"><thead><tr>'+head.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>';body+=rows.map(r=>'<tr>'+Array.from({length:cols},(_,i)=>'<td>'+esc(r[i]||'')+'</td>').join('')+'</tr>').join('');body+='</tbody></table>';const blob=new Blob(['\\ufeff','<!doctype html><html><head><meta charset="utf-8"></head><body>'+body+'</body></html>'],{type:'application/vnd.ms-excel;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Кадровый_дашборд_23-07-2026.xls';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}function shortName(f){const p=clean(f).split(' ');return p.length<2?clean(f):p[0]+' '+(p[1]?.[0]||'')+'.'+(p[2]?.[0]||'')+'.'}function isRemote(x){const v=clean(x.rem).toLowerCase();return v==='да'||v==='1'||v==='true'||v.includes('удал')}function department(x){return clean(x.od)||clean(x.d)||clean(x.b)||'Подразделение не указано'}function buildSms(){const all=[...(Array.isArray(D)?D:[]),...(typeof HALF_EXTRA!=='undefined'&&Array.isArray(HALF_EXTRA)?HALF_EXTRA:[]),...(typeof VACANCIES_SOURCE!=='undefined'&&Array.isArray(VACANCIES_SOURCE)?VACANCIES_SOURCE:[])];const uniq=[];const seen=new Set();for(const x of all){const key=clean(x.id)||[clean(x.f),department(x),clean(x.s)].join('|');if(seen.has(key))continue;seen.add(key);uniq.push(x)}const selected=uniq.filter(x=>{const name=clean(x.f).toLowerCase();const notes=(clean(x.m)+' '+clean(x.hrn)).toLowerCase();const vacancy=name.includes('вакан');return clean(x.s).toLowerCase()==='сокращение'||(vacancy&&notes.includes('сокращ'))});const groups=new Map();for(const x of selected){const dep=department(x);if(!groups.has(dep))groups.set(dep,{people:[],vacancies:[],remote:0});const g=groups.get(dep);const vacancy=clean(x.f).toLowerCase().includes('вакан');if(vacancy)g.vacancies.push(clean(x.f));else{g.people.push(shortName(x.f));if(isRemote(x))g.remote++}}const rows=[...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ru'));const totalPeople=rows.reduce((s,[,g])=>s+g.people.length,0),totalRemote=rows.reduce((s,[,g])=>s+g.remote,0),totalVac=rows.reduce((s,[,g])=>s+g.vacancies.length,0);const lines=['По сокращению (включая сокращаемые вакансии):',''];rows.forEach(([dep,g],i)=>{let line=(i+1)+'. '+dep+' — '+g.people.length+' чел.';if(g.remote)line+=' (удалёнка — '+g.remote+')';if(g.people.length)line+=': '+g.people.join(', ');if(g.vacancies.length)line+='; вакансии — '+g.vacancies.length+': '+g.vacancies.join(', ');lines.push(line)});lines.push('','Итого: '+totalPeople+' сотрудников, удалёнка — '+totalRemote+', сокращаемых вакансий — '+totalVac+'.');return lines.join('\\n')}function openSms(){document.getElementById('smsText').value=buildSms();document.getElementById('smsModal').classList.add('open')}async function copySms(){const text=document.getElementById('smsText').value;try{await navigator.clipboard.writeText(text);alert('Текст скопирован')}catch(e){document.getElementById('smsText').select();document.execCommand('copy');alert('Текст скопирован')}}function init(){if(document.getElementById('dashActions'))return true;const table=pickTable();if(!table)return false;const wrap=document.createElement('div');wrap.id='dashActions';const excel=document.createElement('button');excel.id='excelExportBtn';excel.type='button';excel.textContent='Скачать текущую выборку в Excel';excel.onclick=exportExcel;wrap.append(excel);const host=table.closest('.table-wrap')||table.parentElement;host.parentElement.insertBefore(wrap,host);return true}let n=0;const timer=setInterval(()=>{if(init()||++n>40)clearInterval(timer)},250)})();<\/script>`;
   html=html.replace('</body>',addon+'</body>');
