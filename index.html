@@ -50,7 +50,7 @@
       'Златина Татьяна Николаевна',
       'Картузова Дарья Михайловна'
     ]);
-    html=html.replace(/const D=(\\[.*?\\]);\\nconst HALF_EXTRA=/s,(all,json)=>{
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
       const rows=JSON.parse(json);
       let foundRemote=0,foundHybrid=0;
       for(const x of rows){
@@ -71,7 +71,7 @@
         }
       }
       if(foundRemote!==4||foundHybrid!==26) throw new Error('Сверка приказа 01-202/26: найдено '+foundRemote+' дистанционно и '+foundHybrid+' гибридно');
-      return 'const D='+JSON.stringify(rows)+';\\nconst HALF_EXTRA=';
+      return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
     });
   }
   // REMOTE_ORDER_01_202_26_END
