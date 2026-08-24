@@ -1,4 +1,5 @@
 name: Apply remote work order 01-202-26
+# trigger 2026-08-24
 
 on:
   push:
@@ -74,8 +75,6 @@ jobs:
           x.remoteOrder=REMOTE_ORDER_NO;
           foundRemote++;
         }else if(hybrid.has(name)){
-          // Dashboard KPI historically treats remote/hybrid participants through rem='да'.
-          // Exact mode is preserved separately in remoteMode and in the Google Sheet.
           x.rem='да';
           x.remoteMode='гибридный график';
           x.remoteOrder=REMOTE_ORDER_NO;
