@@ -73,6 +73,7 @@
       if(foundRemote!==4||foundHybrid!==26) throw new Error('Сверка приказа 01-202/26: найдено '+foundRemote+' дистанционно и '+foundHybrid+' гибридно');
       return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
     });
+    html=html.replaceAll('val(x.rem)','val(x.remoteMode||x.rem)');
   }
   // REMOTE_ORDER_01_202_26_END
 `;
