@@ -1,0 +1,95 @@
+name: Update HR dashboard from registry 21.08.2026
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-hr-2026-08-21.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply HR update 21.08.2026
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          marker = "  const addon=`<style>"
+          patch = r'''  // HR_UPDATE_21_08_START
+  {
+    const movedVacancies=[];
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
+      let rows=JSON.parse(json);
+      const take=id=>{
+        const idx=rows.findIndex(x=>x.id===id);
+        if(idx<0) throw new Error('Не найдена кадровая позиция для обновления 21.08.2026: '+id);
+        return rows.splice(idx,1)[0];
+      };
+
+      const orekhova=take('STAFF-119');
+      movedVacancies.push({...orekhova,type:'Вакансия',f:'Вакансия — Ведущий специалист',alias:'Вакансия (после Ореховой Е.М.)',state:'Вакансия',s:'вакансия',reduction:false,rem:null,m:'Орехова Е.М. уволена 17.08.2026; позиция стала вакантной по кадровому реестру от 21.08.2026.',hrn:'Орехова Е.М. уволена 17.08.2026; позиция вакантна.'});
+
+      const kiseleva=take('STAFF-162');
+      movedVacancies.push({...kiseleva,type:'Вакансия',f:'Вакансия — Главный специалист',alias:'Вакансия (после Киселевой Н.Г.)',state:'Вакансия',s:'вакансия',reduction:false,rem:null,m:'Киселева Н.Г. уволена 05.08.2026; позиция стала вакантной по кадровому реестру от 21.08.2026.',hrn:'Киселева Н.Г. уволена 05.08.2026; позиция вакантна.'});
+
+      const voronin=take('STAFF-240');
+      movedVacancies.push({...voronin,type:'Вакансия',f:'Вакансия / сокращение — Главный специалист',alias:'Вакансия (после Воронина Д.О.)',state:'Вакансия',s:'Вакансия / сокращение',reduction:true,rem:null,m:'Воронин Д.О. уволен 03.08.2026; позиция стала вакантной по кадровому реестру от 21.08.2026. Статус сокращения сохранён из подтверждённого перечня.',hrn:'Воронин Д.О. уволен 03.08.2026; вакантная ставка сохраняется в перечне сокращения.'});
+
+      const barshchik=rows.find(x=>x.id==='STAFF-136');
+      if(!barshchik) throw new Error('Барщик А.Ю. не найдена для смены фамилии');
+      Object.assign(barshchik,{f:'Горбунова Алёна Юрьевна',alias:'Горбунова (Барщик) А.Ю.',m:(String(barshchik.m||'').trim()+' В кадровом реестре от 21.08.2026 указана как Горбунова (Барщик) А.Ю.; актуальная фамилия — Горбунова.').trim(),hrn:(String(barshchik.hrn||'').trim()+' В реестре 21.08.2026: Горбунова (Барщик) А.Ю.').trim()});
+
+      rows.push({n:129,staffLine:224,regNo:9,id:'STAFF-224',type:'Сотрудник',f:'Абу Шала Е.С.',alias:'Абу Шала Е.С.',state:'Работа',s:'работает',reduction:false,r:1,z:'Дивин',zf:'Дивин Александр Сергеевич',b:'Отдел сопровождения',d:'Отдел сопровождения',np:'Начальник отдела',m:'По кадровому реестру от 21.08.2026 принята 03.08.2026 на ранее вакантную позицию начальника отдела № 9.',hrn:'Принята 03.08.2026; в реестре 21.08.2026 ФИО указано как «Абу Шала Е.С.».',op:null,od:'5. Управление анализа и мониторинга деятельности органов местного самоуправления и муниципальных организаций',sec:null,nd:'Отдел сопровождения',o:null,rem:null,hd:'2026-08-03',i:null,project:null});
+
+      rows.sort((a,b)=>(Number(a.n)||9999)-(Number(b.n)||9999));
+      return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
+    });
+
+    html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,(all,json)=>{
+      let rows=JSON.parse(json);
+      rows=rows.filter(x=>x.id!=='STAFF-224'&&!['STAFF-119','STAFF-162','STAFF-240'].includes(x.id));
+      rows.push(...movedVacancies);
+      rows.sort((a,b)=>(Number(a.n)||9999)-(Number(b.n)||9999));
+      if(rows.length!==9) throw new Error('Контроль вакансий 21.08.2026: ожидалось 9, получено '+rows.length);
+      return 'const VACANCIES_SOURCE='+JSON.stringify(rows)+';\nlet viewMode=';
+    });
+
+    html=html.replace('финальная сверка штатной расстановки · актуальность 29.07.2026','кадровый реестр · актуальность 21.08.2026');
+    html=html.replace('актуальность 29.07.2026','актуальность 21.08.2026');
+    html=html.replace('Контрольная база — финальная сверка 29.07.2026.','Контрольная база — кадровый реестр 21.08.2026.');
+  }
+  // HR_UPDATE_21_08_END
+
+'''
+          if 'HR_UPDATE_21_08_START' not in s:
+              if marker not in s:
+                  raise SystemExit('Insertion marker not found')
+              s = s.replace(marker, patch + marker, 1)
+          s = s.replace('Кадровый_дашборд_23-07-2026.xls','Кадровый_дашборд_21-08-2026.xls')
+          p.write_text(s, encoding='utf-8')
+
+          changelog=Path('CHANGELOG.md')
+          c=changelog.read_text(encoding='utf-8')
+          section='''## 2026-08-24 — сверка по кадровому реестру от 21.08.2026\n\n- вакансия начальника отдела № 9 закрыта: Абу Шала Е.С., дата приёма 03.08.2026;\n- после увольнения Ореховой Е.М. 17.08.2026 позиция ведущего специалиста стала вакантной;\n- после увольнения Киселевой Н.Г. 05.08.2026 позиция главного специалиста стала вакантной;\n- после увольнения Воронина Д.О. 03.08.2026 позиция стала вакансией; ранее подтверждённый статус сокращения сохранён;\n- Барщик А.Ю. отражена под актуальной фамилией Горбунова (Барщик) А.Ю.;\n- контрольная дата дашборда обновлена на 21.08.2026.\n\nРасхождения, не изменённые без отдельного подтверждения: Дмитриева М.Ю. (0,5 ставки, сокращение) отсутствует в реестре 21.08.2026, но сохранена в дашборде; написание Романишка/Романишко оставлено по ранее подтверждённой карточке.\n\n'''
+          if '## 2026-08-24 — сверка по кадровому реестру от 21.08.2026' not in c:
+              anchor='# История изменений\n\n'
+              if anchor not in c:
+                  raise SystemExit('CHANGELOG header not found')
+              c=c.replace(anchor,anchor+section,1)
+              changelog.write_text(c,encoding='utf-8')
+
+          Path('.github/workflows/update-hr-2026-08-21.yml').unlink()
+          PY
+      - name: Commit HR update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html CHANGELOG.md .github/workflows/update-hr-2026-08-21.yml
+          git commit -m "Обновить кадровый дашборд по реестру 21.08.2026"
+          git push
