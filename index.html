@@ -9,7 +9,7 @@
 <div style="font-family:Arial,sans-serif;padding:40px">Загрузка дашборда…</div>
 <script>
 (async()=>{
-  let src=await fetch('index-base.html?v=20260824-remote-01-202-26',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('index-base.html: '+r.status);return r.text()});
+  let src=await fetch('index-base.html?v=20260828-vacancy-owner-fix',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('index-base.html: '+r.status);return r.text()});
   const marker='  // AUTHORITATIVE_REGISTER_21_08_2026_END\n';
   const patch=String.raw`
 
@@ -76,6 +76,28 @@
     html=html.replaceAll('val(x.rem)','val(x.remoteMode||x.rem)');
   }
   // REMOTE_ORDER_01_202_26_END
+
+  // VACANCY_OWNER_CORRECTION_28_08_2026_START
+  {
+    html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,(all,json)=>{
+      const rows=JSON.parse(json);
+      const candidates=rows.filter(x=>Number(x.r)===0.5 && String(x.s||'').toLowerCase().includes('вакан') && String(x.z||'').trim()==='Попов' && String(x.np||x.f||'').toLowerCase().includes('главн'));
+      if(candidates.length!==1) throw new Error('Сверка вакансии 0,5: найдено '+candidates.length+' кандидатов вместо 1');
+      const x=candidates[0];
+      x.z='Чернышин';
+      x.zf='Чернышин Павел Владимирович';
+      x.b='Отдел сопровождения';
+      x.d='Отдел сопровождения';
+      x.nd='Отдел сопровождения';
+      const note='Управленческое уточнение 28.08.2026: вакансия 0,5 ставки относится к блоку Чернышина; в исходном кадровом реестре ошибочно указана за Поповым.';
+      for(const field of ['m','hrn']){
+        const before=String(x[field]||'').trim();
+        if(!before.includes(note)) x[field]=(before+' '+note).trim();
+      }
+      return 'const VACANCIES_SOURCE='+JSON.stringify(rows)+';\nlet viewMode=';
+    });
+  }
+  // VACANCY_OWNER_CORRECTION_28_08_2026_END
 `;
   if(!src.includes(marker)) throw new Error('Не найден маркер кадрового реестра 21.08.2026');
   if(!src.includes('REMOTE_ORDER_01_202_26_START')) src=src.replace(marker,marker+patch);
