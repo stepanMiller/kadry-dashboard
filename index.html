@@ -9,123 +9,209 @@
 <div style="font-family:Arial,sans-serif;padding:40px">Загрузка дашборда…</div>
 <script>
 (async()=>{
-  let src=await fetch('index-base.html?v=20260907-register',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('index-base.html: '+r.status);return r.text()});
+  let src=await fetch('index-base.html?v=20260908-register',{cache:'no-store'}).then(r=>{
+    if(!r.ok)throw new Error('index-base.html: '+r.status);
+    return r.text();
+  });
   const marker='  // AUTHORITATIVE_REGISTER_21_08_2026_END\n';
+  if(!src.includes(marker))throw new Error('Не найден маркер кадрового реестра 21.08.2026');
+
   const patch=String.raw`
-
-  // AUTHORITATIVE_REGISTER_07_09_2026_START
+  // AUTHORITATIVE_CURRENT_STATE_08_09_2026_START
   {
-    let vacDav=null,vacFil=null,fillFil=null,fillCher=null,fillDmit=null;
-    const addNote=(x,note)=>{for(const f of ['m','hrn']){const b=String(x[f]||'').trim();if(!b.includes(note))x[f]=(b+' '+note).trim();}};
-    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
-      let rows=JSON.parse(json);
-      const kon=rows.find(x=>String(x.f||'').trim()==='Кондуков Виктор Сергеевич');
-      const dav=rows.find(x=>String(x.f||'').trim()==='Давыдулин Александр Витальевич');
-      const fil=rows.find(x=>String(x.f||'').trim()==='Филатова Варвара Андреевна');
-      const tes=rows.find(x=>String(x.f||'').trim()==='Тесленко Илья Денисович');
-      if(!kon||!dav||!fil||!tes)throw new Error('Сверка реестра 07.09: не найдены Кондуков/Давыдулин/Филатова/Тесленко');
-
-      vacDav=Object.assign({},dav,{regNo:42,n:42,id:'VAC-20260907-042',type:'Вакансия',f:'Вакансия — Главный специалист',alias:'Вакансия',state:'Вакансия',s:'вакансия',reduction:false,r:1,z:'УпрВнешКомм',zf:'Бурдуковская Р.З. (Упр. внешних коммуникаций и защиты информации)',b:'Отдел сопровождения',d:'Отдел сопровождения',nd:'Отдел сопровождения',np:'Главный специалист',rem:null,remoteMode:null,remoteOrder:null,hd:'2026-09-07'});
-      vacDav.m='Давыдулин А.В. переведён с 07.09.2026 на должность заместителя начальника отдела внешних коммуникаций; позиция главного специалиста отдела сопровождения стала вакантной.';
-      vacDav.hrn=vacDav.m;
-
-      vacFil=Object.assign({},fil,{regNo:73,n:73,id:'VAC-20260901-073',type:'Вакансия',f:'Вакансия — Главный специалист',alias:'Вакансия',state:'Вакансия',s:'вакансия',reduction:false,r:0.5,z:'Викулова',zf:'Викулова Светлана Константиновна',b:'Управление по взаимодействию с органами исполнительной власти / Отдел сопровождения',d:'Отдел сопровождения',nd:'Отдел сопровождения',np:'Главный специалист',rem:null,remoteMode:null,remoteOrder:null,hd:'2026-09-01'});
-      vacFil.m='Филатова В.А. переведена с 01.09.2026 на полную ставку; прежняя позиция главного специалиста 0,5 ставки стала вакантной.';
-      vacFil.hrn=vacFil.m;
-
-      Object.assign(kon,{regNo:3,n:3,id:'STAFF-20260907-003',type:'Сотрудник',f:'Давыдулин Александр Витальевич',alias:'Давыдулин Александр Витальевич',state:'Работа',s:'работает',reduction:false,r:1,z:'УпрВнешКомм',zf:'Бурдуковская Р.З. (Упр. внешних коммуникаций и защиты информации)',b:'Отдел внешних коммуникаций',d:'Отдел внешних коммуникаций',np:'Заместитель начальника отдела',op:'Заместитель начальника сектора в управлении',od:'4. Управление информационного планирования и внешних коммуникаций',sec:'Сектор внешних коммуникаций',nd:'Отдел внешних коммуникаций',o:'00ЗК-000030 от 04.09.2026',rem:null,hd:'2026-09-07',m:'Кондуков В.С. уволен 21.08.2026; Давыдулин А.В. переведён с 07.09.2026 на должность заместителя начальника отдела внешних коммуникаций.',hrn:'Кондуков В.С. уволен 21.08.2026; перевод Давыдулина А.В. с 07.09.2026, приказ 00ЗК-000030 от 04.09.2026.'});
-
-      addNote(tes,'По реестру, полученному 07.09.2026, увольнение Тесленко И.Д. указано с 08.09.2026; в состоянии на 07.09.2026 сотрудник сохраняется работающим.');
-      rows=rows.filter(x=>x!==dav&&x!==fil);
-      return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
-    });
-
-    html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,(all,json)=>{
-      let rows=JSON.parse(json);
-      const kisel=rows.find(x=>x.id==='VAC-20260821-134'||/Киселев/i.test(String(x.m||'')+' '+String(x.hrn||'')));
-      const solov=rows.find(x=>String(x.z||'').trim()==='Соловьева'&&String(x.s||'').toLowerCase().includes('вакан')&&String(x.np||x.f||'').toLowerCase().includes('главн'));
-      const kuz=rows.find(x=>x.id==='VAC-KUZNETSOVA-NS'||/Кузнецова Н\.С\./i.test(String(x.m||'')+' '+String(x.hrn||'')));
-      if(!kisel||!solov||!kuz||!vacDav||!vacFil)throw new Error('Сверка реестра 07.09: не найдены три закрываемые вакансии или две новые вакансии');
-
-      fillFil=Object.assign({},kisel,{regNo:126,n:126,id:'STAFF-20260901-126',type:'Сотрудник',f:'Филатова Варвара Андреевна',alias:'Филатова Варвара Андреевна',state:'Работа',s:'работает',reduction:false,r:1,z:'*Викулова',zf:'*Викулова С.К.',b:'Административно-управленческий аппарат / Отдел сопровождения',d:'Отдел сопровождения',nd:'Отдел сопровождения',np:'Главный специалист',o:'00ЗК-000029 от 01.09.2026',rem:null,hd:'2026-09-01',m:'Филатова В.А. переведена с 01.09.2026 на позицию, освободившуюся после увольнения Киселевой Н.Г. 05.08.2026; приказ 00ЗК-000029 от 01.09.2026.',hrn:'Киселева Н.Г. уволена 05.08.2026; Филатова В.А. переведена на позицию с 01.09.2026.'});
-
-      fillCher=Object.assign({},solov,{regNo:102,n:102,id:'STAFF-20260825-102',type:'Сотрудник',f:'Черенкова Леся Григорьевна',alias:'Черенкова Леся Григорьевна',state:'Работа',s:'работает',reduction:false,r:1,z:'Соловьева',zf:'Соловьева Елена Юрьевна',b:'Отдел сопровождения',d:'Отдел сопровождения',nd:'Отдел сопровождения',np:'Главный аналитик',o:'00ЗК-000051 от 25.08.2026',rem:null,hd:'2026-08-25',m:'Черенкова Л.Г. принята на вакантную позицию главного аналитика; приказ 00ЗК-000051 от 25.08.2026.',hrn:'Приём Черенковой Л.Г. с 25.08.2026 на вакантную позицию главного аналитика.'});
-
-      fillDmit=Object.assign({},kuz,{regNo:15,n:15,id:'STAFF-20260907-015',type:'Сотрудник',f:'Дмитриева Галина Андреевна',alias:'Дмитриева Галина Андреевна',state:'Работа',s:'работает',reduction:false,r:1,z:'Викулова',zf:'Викулова Светлана Константиновна',b:'Управление по взаимодействию с органами исполнительной власти / Отдел сопровождения',d:'Управление по взаимодействию с органами исполнительной власти / Отдел сопровождения',nd:'Отдел сопровождения',np:'Главный специалист',o:'00ЗК-000051 от 07.09.2026',rem:null,hd:'2026-09-07',m:'Дмитриева Г.А. принята с 07.09.2026 на позицию, освободившуюся после увольнения Кузнецовой Н.С. 24.07.2026; приказ 00ЗК-000051 от 07.09.2026.',hrn:'Кузнецова Н.С. уволена 24.07.2026; Дмитриева Г.А. принята с 07.09.2026.'});
-
-      rows=rows.filter(x=>x!==kisel&&x!==solov&&x!==kuz);
-      rows.push(vacDav,vacFil);
-      const fte=rows.reduce((s,x)=>s+Number(x.r||0),0);
-      if(rows.length!==8||Math.abs(fte-7)>1e-9)throw new Error('Сверка вакансий 07.09: '+rows.length+' позиций / '+fte+' ставки вместо 8 / 7');
-      return 'const VACANCIES_SOURCE='+JSON.stringify(rows)+';\nlet viewMode=';
-    });
-
-    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
-      const rows=JSON.parse(json);
-      if(!fillFil||!fillCher||!fillDmit)throw new Error('Сверка реестра 07.09: новые сотрудники не сформированы');
-      rows.push(fillFil,fillCher,fillDmit);
-      const fte=rows.reduce((s,x)=>s+Number(x.r||0),0);
-      if(rows.length!==137||Math.abs(fte-132)>1e-9)throw new Error('Сверка сотрудников 07.09: '+rows.length+' человек / '+fte+' ставки вместо 137 / 132');
-      return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
-    });
-
-    html=html.replaceAll('актуальность 21.08.2026','актуальность 07.09.2026').replaceAll('финальная сверка 21.08.2026.','финальная сверка 07.09.2026.').replaceAll('Кадровый_дашборд_21-08-2026.xls','Кадровый_дашборд_07-09-2026.xls');
-  }
-  // AUTHORITATIVE_REGISTER_07_09_2026_END
-
-  // NAME_CORRECTIONS_08_09_2026_START
-  {
-    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
-      const rows=JSON.parse(json);
-      const fixes=[
-        ['Неяскина Ольга Витальевна','Неяскина Ольга Васильевна'],
-        ['Дардыкина Наталья Васильевна','Дардыкина Надежда Васильевна']
-      ];
-      for(const [oldName,newName] of fixes){
-        const x=rows.find(r=>String(r.f||'').trim()===oldName);
-        if(!x)throw new Error('Уточнение ФИО 08.09: не найден '+oldName);
-        x.f=newName;
-        const note='Управленческое уточнение 08.09.2026: корректное ФИО — '+newName+'.';
-        for(const f of ['m','hrn']){const before=String(x[f]||'').trim();if(!before.includes(note))x[f]=(before+' '+note).trim();}
+    const addNote=(x,note)=>{
+      for(const f of ['m','hrn']){
+        const before=String(x[f]||'').trim();
+        if(!before.includes(note))x[f]=(before+' '+note).trim();
       }
-      return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
-    });
-  }
-  // NAME_CORRECTIONS_08_09_2026_END
+    };
 
-  // REMOTE_ORDER_01_202_26_START
-  {
-    const REMOTE_ORDER_NO='01-202/26 от 13.08.2026';
-    const remoteOnly=new Set(['Баранова Наталия Андреевна','Баркова Елизавета Александровна','Иванова Юлия Борисовна','Трошина Алина Сергеевна']);
-    const hybrid=new Set(['Дмитриева Милена Юрьевна','Дробницкая Ольга Андреевна','Егиазарова Стелла Гарриевна','Карасев Олег Робертович','Качалова Наталья Сергеевна','Козин Алексей Юрьевич','Колобкова Ирина Евгеньевна','Комарова Ольга Федоровна','Логинова Юлия Александровна','Малькова Ольга Игоревна','Милосердова Екатерина Николаевна','Муравьев Игорь Викторович','Носова Ксения Анатольевна','Переверзева Екатерина Андреевна','Петрова Юлия Сергеевна','Севостьянова Ольга Владимировна','Семечкина София Андреевна','Сонина Елена Владимировна','Крючков Дмитрий Петрович','Алиева Наталия Леонидовна','Аносинская Светлана Владимировна','Галицкая Ольга Юрьевна','Голеватова Елена Александровна','Дардыкина Надежда Васильевна','Златина Татьяна Николаевна','Картузова Дарья Михайловна']);
-    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
-      const rows=JSON.parse(json);let a=0,b=0;
-      for(const x of rows){x.rem=null;delete x.remoteMode;delete x.remoteOrder;const name=String(x.f||'').trim();if(remoteOnly.has(name)){x.rem='да';x.remoteMode='дистанционная работа';x.remoteOrder=REMOTE_ORDER_NO;a++;}else if(hybrid.has(name)){x.rem='да';x.remoteMode='гибридный график';x.remoteOrder=REMOTE_ORDER_NO;b++;}}
-      if(a!==4||b!==26)throw new Error('Сверка приказа 01-202/26: найдено '+a+' дистанционно и '+b+' гибридно');
-      return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
+    const dMatch=html.match(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s);
+    const vMatch=html.match(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s);
+    if(!dMatch||!vMatch)throw new Error('Не найдены рабочие массивы D / VACANCIES_SOURCE');
+    let D=JSON.parse(dMatch[1]);
+    let V=JSON.parse(vMatch[1]);
+
+    // 07.09.2026 — события нового реестра.
+    const kon=D.find(x=>String(x.f||'').trim()==='Кондуков Виктор Сергеевич');
+    const dav=D.find(x=>String(x.f||'').trim()==='Давыдулин Александр Витальевич');
+    const fil=D.find(x=>String(x.f||'').trim()==='Филатова Варвара Андреевна');
+    const tes=D.find(x=>String(x.f||'').trim()==='Тесленко Илья Денисович');
+    if(!kon||!dav||!fil||!tes)throw new Error('Сверка 07–08.09: не найдены Кондуков/Давыдулин/Филатова/Тесленко');
+
+    const vacDav=Object.assign({},dav,{
+      regNo:42,n:42,id:'VAC-20260907-042',type:'Вакансия',
+      f:'Вакансия — Главный специалист',alias:'Вакансия',state:'Вакансия',s:'вакансия',
+      reduction:false,r:1,z:'УпрВнешКомм',
+      zf:'Бурдуковская Р.З. (Упр. внешних коммуникаций и защиты информации)',
+      b:'Отдел сопровождения',d:'Отдел сопровождения',nd:'Отдел сопровождения',
+      np:'Главный специалист',rem:null,remoteMode:null,remoteOrder:null,hd:'2026-09-07'
     });
+    vacDav.m='Давыдулин А.В. переведён с 07.09.2026 на должность заместителя начальника отдела внешних коммуникаций; позиция главного специалиста отдела сопровождения стала вакантной.';
+    vacDav.hrn=vacDav.m;
+
+    const vacFil=Object.assign({},fil,{
+      regNo:73,n:73,id:'VAC-20260901-073',type:'Вакансия',
+      f:'Вакансия — Главный специалист',alias:'Вакансия',state:'Вакансия',s:'вакансия',
+      reduction:false,r:0.5,z:'Викулова',zf:'Викулова Светлана Константиновна',
+      b:'Управление по взаимодействию с органами исполнительной власти / Отдел сопровождения',
+      d:'Отдел сопровождения',nd:'Отдел сопровождения',np:'Главный специалист',
+      rem:null,remoteMode:null,remoteOrder:null,hd:'2026-09-01'
+    });
+    vacFil.m='Филатова В.А. переведена с 01.09.2026 на полную ставку; прежняя позиция главного специалиста 0,5 ставки стала вакантной.';
+    vacFil.hrn=vacFil.m;
+
+    Object.assign(kon,{
+      regNo:3,n:3,id:'STAFF-20260907-003',type:'Сотрудник',
+      f:'Давыдулин Александр Витальевич',alias:'Давыдулин Александр Витальевич',
+      state:'Работа',s:'работает',reduction:false,r:1,z:'УпрВнешКомм',
+      zf:'Бурдуковская Р.З. (Упр. внешних коммуникаций и защиты информации)',
+      b:'Отдел внешних коммуникаций',d:'Отдел внешних коммуникаций',
+      np:'Заместитель начальника отдела',op:'Заместитель начальника сектора в управлении',
+      od:'4. Управление информационного планирования и внешних коммуникаций',
+      sec:'Сектор внешних коммуникаций',nd:'Отдел внешних коммуникаций',
+      o:'00ЗК-000030 от 04.09.2026',rem:null,hd:'2026-09-07',
+      m:'Кондуков В.С. уволен 21.08.2026; Давыдулин А.В. переведён с 07.09.2026 на должность заместителя начальника отдела внешних коммуникаций.',
+      hrn:'Кондуков В.С. уволен 21.08.2026; перевод Давыдулина А.В. с 07.09.2026, приказ 00ЗК-000030 от 04.09.2026.'
+    });
+
+    D=D.filter(x=>x!==dav&&x!==fil);
+
+    const kisel=V.find(x=>x.id==='VAC-20260821-134'||/Киселев/i.test(String(x.m||'')+' '+String(x.hrn||'')));
+    const solov=V.find(x=>String(x.z||'').trim()==='Соловьева'&&String(x.s||'').toLowerCase().includes('вакан')&&String(x.np||x.f||'').toLowerCase().includes('главн'));
+    const kuz=V.find(x=>x.id==='VAC-KUZNETSOVA-NS'||/Кузнецова Н\.С\./i.test(String(x.m||'')+' '+String(x.hrn||'')));
+    if(!kisel||!solov||!kuz)throw new Error('Сверка 07.09: не найдены закрываемые вакансии Киселевой/Соловьевой/Кузнецовой');
+
+    const fillFil=Object.assign({},kisel,{
+      regNo:126,n:126,id:'STAFF-20260901-126',type:'Сотрудник',
+      f:'Филатова Варвара Андреевна',alias:'Филатова Варвара Андреевна',
+      state:'Работа',s:'работает',reduction:false,r:1,z:'*Викулова',zf:'*Викулова С.К.',
+      b:'Административно-управленческий аппарат / Отдел сопровождения',
+      d:'Отдел сопровождения',nd:'Отдел сопровождения',np:'Главный специалист',
+      o:'00ЗК-000029 от 01.09.2026',rem:null,hd:'2026-09-01',
+      m:'Филатова В.А. переведена с 01.09.2026 на позицию, освободившуюся после увольнения Киселевой Н.Г. 05.08.2026; приказ 00ЗК-000029 от 01.09.2026.',
+      hrn:'Киселева Н.Г. уволена 05.08.2026; Филатова В.А. переведена на позицию с 01.09.2026.'
+    });
+
+    const fillCher=Object.assign({},solov,{
+      regNo:102,n:102,id:'STAFF-20260825-102',type:'Сотрудник',
+      f:'Черенкова Леся Григорьевна',alias:'Черенкова Леся Григорьевна',
+      state:'Работа',s:'работает',reduction:false,r:1,z:'Соловьева',zf:'Соловьева Елена Юрьевна',
+      b:'Отдел сопровождения',d:'Отдел сопровождения',nd:'Отдел сопровождения',
+      np:'Главный аналитик',o:'00ЗК-000051 от 25.08.2026',rem:null,hd:'2026-08-25',
+      m:'Черенкова Л.Г. принята на вакантную позицию главного аналитика; приказ 00ЗК-000051 от 25.08.2026.',
+      hrn:'Приём Черенковой Л.Г. с 25.08.2026 на вакантную позицию главного аналитика.'
+    });
+
+    const fillDmit=Object.assign({},kuz,{
+      regNo:15,n:15,id:'STAFF-20260907-015',type:'Сотрудник',
+      f:'Дмитриева Галина Андреевна',alias:'Дмитриева Галина Андреевна',
+      state:'Работа',s:'работает',reduction:false,r:1,z:'Викулова',zf:'Викулова Светлана Константиновна',
+      b:'Управление по взаимодействию с органами исполнительной власти / Отдел сопровождения',
+      d:'Управление по взаимодействию с органами исполнительной власти / Отдел сопровождения',
+      nd:'Отдел сопровождения',np:'Главный специалист',
+      o:'00ЗК-000051 от 07.09.2026',rem:null,hd:'2026-09-07',
+      m:'Дмитриева Г.А. принята с 07.09.2026 на позицию, освободившуюся после увольнения Кузнецовой Н.С. 24.07.2026; приказ 00ЗК-000051 от 07.09.2026.',
+      hrn:'Кузнецова Н.С. уволена 24.07.2026; Дмитриева Г.А. принята с 07.09.2026.'
+    });
+
+    V=V.filter(x=>x!==kisel&&x!==solov&&x!==kuz);
+    V.push(vacDav,vacFil);
+    D.push(fillFil,fillCher,fillDmit);
+
+    // 08.09.2026 — уточнение ФИО.
+    const nameFixes=[
+      ['Неяскина Ольга Витальевна','Неяскина Ольга Васильевна'],
+      ['Дардыкина Наталья Васильевна','Дардыкина Надежда Васильевна']
+    ];
+    for(const [oldName,newName] of nameFixes){
+      const x=D.find(r=>String(r.f||'').trim()===oldName);
+      if(!x)throw new Error('Уточнение ФИО 08.09: не найден '+oldName);
+      x.f=newName;
+      addNote(x,'Управленческое уточнение 08.09.2026: корректное ФИО — '+newName+'.');
+    }
+
+    // 08.09.2026 — увольнение Тесленко вступило в силу.
+    const tesNow=D.find(x=>String(x.f||'').trim()==='Тесленко Илья Денисович');
+    if(!tesNow)throw new Error('Сверка 08.09: Тесленко не найден среди сотрудников');
+    const vacTes=Object.assign({},tesNow,{
+      type:'Вакансия',f:'Вакансия — Ведущий специалист',alias:'Вакансия',
+      state:'Вакансия',s:'вакансия',reduction:false,r:1,
+      rem:null,remoteMode:null,remoteOrder:null,hd:'2026-09-08'
+    });
+    vacTes.m='Тесленко И.Д. уволен 08.09.2026; позиция ведущего специалиста стала вакантной.';
+    vacTes.hrn=(String(tesNow.hrn||tesNow.m||'').trim()+' Тесленко И.Д. уволен 08.09.2026; позиция стала вакантной.').trim();
+    D=D.filter(x=>x!==tesNow);
+    V.push(vacTes);
+
+    // Управленческое уточнение: вакансия 0,5 — Чернышин, не Попов.
+    const ownerCandidates=V.filter(x=>
+      Number(x.r)===0.5 &&
+      String(x.s||'').toLowerCase().includes('вакан') &&
+      String(x.z||'').trim()==='Попов' &&
+      String(x.np||x.f||'').toLowerCase().includes('главн')
+    );
+    if(ownerCandidates.length!==1)throw new Error('Сверка вакансии 0,5: найдено '+ownerCandidates.length+' кандидатов вместо 1');
+    const halfVac=ownerCandidates[0];
+    halfVac.z='Чернышин';
+    halfVac.zf='Чернышин Павел Владимирович';
+    halfVac.b='Отдел сопровождения';
+    halfVac.d='Отдел сопровождения';
+    halfVac.nd='Отдел сопровождения';
+    addNote(halfVac,'Управленческое уточнение 28.08.2026: вакансия 0,5 ставки относится к блоку Чернышина; в исходном кадровом реестре ошибочно указана за Поповым.');
+
+    // Дистанционная/гибридная работа — отдельный действующий приказ.
+    const REMOTE_ORDER_NO='01-202/26 от 13.08.2026';
+    const remoteOnly=new Set([
+      'Баранова Наталия Андреевна','Баркова Елизавета Александровна',
+      'Иванова Юлия Борисовна','Трошина Алина Сергеевна'
+    ]);
+    const hybrid=new Set([
+      'Дмитриева Милена Юрьевна','Дробницкая Ольга Андреевна','Егиазарова Стелла Гарриевна',
+      'Карасев Олег Робертович','Качалова Наталья Сергеевна','Козин Алексей Юрьевич',
+      'Колобкова Ирина Евгеньевна','Комарова Ольга Федоровна','Логинова Юлия Александровна',
+      'Малькова Ольга Игоревна','Милосердова Екатерина Николаевна','Муравьев Игорь Викторович',
+      'Носова Ксения Анатольевна','Переверзева Екатерина Андреевна','Петрова Юлия Сергеевна',
+      'Севостьянова Ольга Владимировна','Семечкина София Андреевна','Сонина Елена Владимировна',
+      'Крючков Дмитрий Петрович','Алиева Наталия Леонидовна','Аносинская Светлана Владимировна',
+      'Галицкая Ольга Юрьевна','Голеватова Елена Александровна','Дардыкина Надежда Васильевна',
+      'Златина Татьяна Николаевна','Картузова Дарья Михайловна'
+    ]);
+    let remoteCount=0,hybridCount=0;
+    for(const x of D){
+      x.rem=null;
+      delete x.remoteMode;
+      delete x.remoteOrder;
+      const name=String(x.f||'').trim();
+      if(remoteOnly.has(name)){
+        x.rem='да';x.remoteMode='дистанционная работа';x.remoteOrder=REMOTE_ORDER_NO;remoteCount++;
+      }else if(hybrid.has(name)){
+        x.rem='да';x.remoteMode='гибридный график';x.remoteOrder=REMOTE_ORDER_NO;hybridCount++;
+      }
+    }
+
+    const dFte=D.reduce((s,x)=>s+Number(x.r||0),0);
+    const vFte=V.reduce((s,x)=>s+Number(x.r||0),0);
+    if(D.length!==136||Math.abs(dFte-131)>1e-9)throw new Error('Сверка сотрудников 08.09: '+D.length+' человек / '+dFte+' ставки вместо 136 / 131');
+    if(V.length!==9||Math.abs(vFte-8)>1e-9)throw new Error('Сверка вакансий 08.09: '+V.length+' позиций / '+vFte+' ставки вместо 9 / 8');
+    if(D.length+V.length!==145||Math.abs(dFte+vFte-139)>1e-9)throw new Error('Сверка общего штата 08.09 не пройдена');
+    if(remoteCount!==4||hybridCount!==26)throw new Error('Сверка приказа 01-202/26: '+remoteCount+' дистанционно / '+hybridCount+' гибридно');
+
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(D)+';\nconst HALF_EXTRA=');
+    html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(V)+';\nlet viewMode=');
+    html=html.replaceAll('актуальность 21.08.2026','актуальность 08.09.2026');
+    html=html.replaceAll('финальная сверка 21.08.2026.','финальная сверка 08.09.2026.');
+    html=html.replaceAll('Кадровый_дашборд_21-08-2026.xls','Кадровый_дашборд_08-09-2026.xls');
     html=html.replaceAll('val(x.rem)','val(x.remoteMode||x.rem)');
   }
-  // REMOTE_ORDER_01_202_26_END
-
-  // VACANCY_OWNER_CORRECTION_28_08_2026_START
-  {
-    html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,(all,json)=>{
-      const rows=JSON.parse(json);
-      const candidates=rows.filter(x=>Number(x.r)===0.5&&String(x.s||'').toLowerCase().includes('вакан')&&String(x.z||'').trim()==='Попов'&&String(x.np||x.f||'').toLowerCase().includes('главн'));
-      if(candidates.length!==1)throw new Error('Сверка вакансии 0,5: найдено '+candidates.length+' кандидатов вместо 1');
-      const x=candidates[0];x.z='Чернышин';x.zf='Чернышин Павел Владимирович';x.b='Отдел сопровождения';x.d='Отдел сопровождения';x.nd='Отдел сопровождения';
-      const note='Управленческое уточнение 28.08.2026: вакансия 0,5 ставки относится к блоку Чернышина; в исходном кадровом реестре ошибочно указана за Поповым.';
-      for(const f of ['m','hrn']){const before=String(x[f]||'').trim();if(!before.includes(note))x[f]=(before+' '+note).trim();}
-      return 'const VACANCIES_SOURCE='+JSON.stringify(rows)+';\nlet viewMode=';
-    });
-  }
-  // VACANCY_OWNER_CORRECTION_28_08_2026_END
+  // AUTHORITATIVE_CURRENT_STATE_08_09_2026_END
 `;
-  if(!src.includes(marker))throw new Error('Не найден маркер кадрового реестра 21.08.2026');
+
   src=src.replace(marker,marker+patch);
   document.open();document.write(src);document.close();
-})().catch(e=>{document.body.innerHTML='<div style="font:16px Arial;padding:30px;color:#991b1b"><b>Ошибка загрузки дашборда</b><br><br>'+String(e.message||e)+'</div>'});
+})().catch(e=>{
+  document.body.innerHTML='<div style="font:16px Arial;padding:30px;color:#991b1b"><b>Ошибка загрузки дашборда</b><br><br>'+String(e.message||e)+'</div>';
+});
 </script>
 </body>
 </html>
