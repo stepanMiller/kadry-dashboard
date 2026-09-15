@@ -9,7 +9,7 @@
 <div style="font-family:Arial,sans-serif;padding:40px">Загрузка дашборда…</div>
 <script>
 (async()=>{
-  let src=await fetch('index-08.html?v=20260915',{cache:'no-store'}).then(r=>{
+  let src=await fetch('index-08.html?v=20260915b',{cache:'no-store'}).then(r=>{
     if(!r.ok)throw new Error('index-08.html: '+r.status);
     return r.text();
   });
@@ -25,8 +25,8 @@
         if(!before.includes(note))x[f]=(before+' '+note).trim();
       }
     };
-    const dMatch15=html.match(/const D=(\\[.*?\\]);\\nconst HALF_EXTRA=/s);
-    const vMatch15=html.match(/const VACANCIES_SOURCE=(\\[.*?\\]);\\nlet viewMode=/s);
+    const dMatch15=html.match(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s);
+    const vMatch15=html.match(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s);
     if(!dMatch15||!vMatch15)throw new Error('Сверка 15.09: не найдены D / VACANCIES_SOURCE');
     let D15=JSON.parse(dMatch15[1]);
     let V15=JSON.parse(vMatch15[1]);
@@ -100,8 +100,8 @@
     if(remote15!==4||hybrid15!==26)throw new Error('Сверка приказа 01-202/26 на 15.09: '+remote15+' / '+hybrid15);
     if(redD15!==17||redV15!==5||Math.abs(redFte15-20)>1e-9)throw new Error('Сверка сокращения 15.09: '+redD15+' сотрудников, '+redV15+' вакансий, '+redFte15+' ставки');
 
-    html=html.replace(/const D=(\\[.*?\\]);\\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(D15)+';\\nconst HALF_EXTRA=');
-    html=html.replace(/const VACANCIES_SOURCE=(\\[.*?\\]);\\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(V15)+';\\nlet viewMode=');
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(D15)+';\nconst HALF_EXTRA=');
+    html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(V15)+';\nlet viewMode=');
     html=html.replaceAll('актуальность 08.09.2026','актуальность 15.09.2026');
     html=html.replaceAll('финальная сверка 08.09.2026.','финальная сверка 15.09.2026.');
     html=html.replaceAll('Кадровый_дашборд_08-09-2026.xls','Кадровый_дашборд_15-09-2026.xls');
