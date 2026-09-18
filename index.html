@@ -152,8 +152,8 @@
       const r=ministryRules.find(a=>n>=a[0]&&n<=a[1]);
       return r?{od:r[2],sec:r[3]}:null;
     };
-    const dMin=html.match(/const D=(\\[.*?\\]);\\nconst HALF_EXTRA=/s);
-    const vMin=html.match(/const VACANCIES_SOURCE=(\\[.*?\\]);\\nlet viewMode=/s);
+    const dMin=html.match(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s);
+    const vMin=html.match(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s);
     if(!dMin||!vMin)throw new Error('Минчистоты: не найдены D / VACANCIES_SOURCE');
     let DM=JSON.parse(dMin[1]), VM=JSON.parse(vMin[1]);
     let linked=0, unlinked=0;
@@ -172,14 +172,14 @@
       }
     }
     if(linked<130)throw new Error('Минчистоты: заполнено только '+linked+' позиций');
-    html=html.replace(/const D=(\\[.*?\\]);\\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(DM)+';\\nconst HALF_EXTRA=');
-    html=html.replace(/const VACANCIES_SOURCE=(\\[.*?\\]);\\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(VM)+';\\nlet viewMode=');
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(DM)+';\nconst HALF_EXTRA=');
+    html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(VM)+';\nlet viewMode=');
 
-    html=html.replace(/function quickFilter\\(v\\)\\{.*?\\n\\}/s,
-"function quickFilter(v){\\n  $('fStatus').value=''; $('fRate').value=''; $('fRemote').value=''; $('fDeputy').value=''; $('fDept').value=''; $('fInternal').value=''; if($('fMinistryDept')) $('fMinistryDept').value=''; $('q').value='';\\n  viewMode=(v==='accounted'||v==='0.5'||v==='plan')?'accounted':'rows';\\n  if(v==='0.5') $('fRate').value='0.5';\\n  else if(v==='remote') $('fRemote').value='да';\\n  else if(v==='вакансия'||v==='сокращение') $('fStatus').value=v;\\n  render();\\n}");
+    html=html.replace(/function quickFilter\(v\)\{.*?\n\}/s,
+"function quickFilter(v){\n  $('fStatus').value=''; $('fRate').value=''; $('fRemote').value=''; $('fDeputy').value=''; $('fDept').value=''; $('fInternal').value=''; if($('fMinistryDept')) $('fMinistryDept').value=''; $('q').value='';\n  viewMode=(v==='accounted'||v==='0.5'||v==='plan')?'accounted':'rows';\n  if(v==='0.5') $('fRate').value='0.5';\n  else if(v==='remote') $('fRemote').value='да';\n  else if(v==='вакансия'||v==='сокращение') $('fStatus').value=v;\n  render();\n}");
 
-    html=html.replace(/function filtered\\(\\)\\{.*?\\n\\}/s,
-"function filtered(){\\n  const q=$('q').value.trim().toLowerCase(), z=$('fDeputy').value, s=$('fStatus').value, r=$('fRate').value, rem=$('fRemote').value, d=$('fDept').value, i=$('fInternal').value, md=$('fMinistryDept')?$('fMinistryDept').value:'';\\n  const source=viewMode==='accounted'?[...D,...VACANCIES_SOURCE]:(s==='вакансия'?VACANCIES_SOURCE:(s==='сокращение'||z?[...D,...VACANCIES_SOURCE]:D));\\n  return source.filter(x=>(!z||(z==='ЦСТ'?(x.project==='ЦСТ'||x.i==='ЦСТ'):x.z===z))&&(!s||(s==='сокращение'?x.reduction===true:(s==='вакансия'?x.type==='Вакансия':String(x.s||'').toLowerCase()===String(s).toLowerCase())))&&(!r||String(x.r)===r)&&(!d||x.d===d)&&(!i||x.i===i)&&(!md||x.ministryDept===md)&&(!rem||(rem==='да'?String(x.rem||'').toLowerCase()==='да':String(x.rem||'').toLowerCase()!=='да'))&&(!q||[x.f,x.z,x.zf,x.d,x.b,x.i,x.op,x.od,x.sec,x.ministryDept,x.ministrySector,x.np,x.hrn].join(' ').toLowerCase().includes(q)));\\n}");
+    html=html.replace(/function filtered\(\)\{.*?\n\}/s,
+"function filtered(){\n  const q=$('q').value.trim().toLowerCase(), z=$('fDeputy').value, s=$('fStatus').value, r=$('fRate').value, rem=$('fRemote').value, d=$('fDept').value, i=$('fInternal').value, md=$('fMinistryDept')?$('fMinistryDept').value:'';\n  const source=viewMode==='accounted'?[...D,...VACANCIES_SOURCE]:(s==='вакансия'?VACANCIES_SOURCE:(s==='сокращение'||z?[...D,...VACANCIES_SOURCE]:D));\n  return source.filter(x=>(!z||(z==='ЦСТ'?(x.project==='ЦСТ'||x.i==='ЦСТ'):x.z===z))&&(!s||(s==='сокращение'?x.reduction===true:(s==='вакансия'?x.type==='Вакансия':String(x.s||'').toLowerCase()===String(s).toLowerCase())))&&(!r||String(x.r)===r)&&(!d||x.d===d)&&(!i||x.i===i)&&(!md||x.ministryDept===md)&&(!rem||(rem==='да'?String(x.rem||'').toLowerCase()==='да':String(x.rem||'').toLowerCase()!=='да'))&&(!q||[x.f,x.z,x.zf,x.d,x.b,x.i,x.op,x.od,x.sec,x.ministryDept,x.ministrySector,x.np,x.hrn].join(' ').toLowerCase().includes(q)));\n}");
 
     const enhancer='<script>(function(){'+
       'function byId(id){return document.getElementById(id)};'+
