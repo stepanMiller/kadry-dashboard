@@ -108,7 +108,100 @@
   }
   // AUTHORITATIVE_CURRENT_STATE_15_09_2026_END
 `;
-  src=src.replace(marker,patch15+'\n'+marker);
+
+  const patchMin=String.raw\`
+  // MINISTRY_STRUCTURE_15_09_2026_START
+  {
+    const ministryRules=[
+      [1,1,'3. Отдел внутреннего финансового аудита Министерства и контроля подведомственных организаций',null],
+      [2,8,'4. Управление информационного планирования и внешних коммуникаций (сектор внешних коммуникаций)','Сектор внешних коммуникаций'],
+      [9,13,'5. Управление анализа и мониторинга деятельности органов местного самоуправления и муниципальных организаций','Сектор анализа эффективности муниципальных организаций'],
+      [14,15,'6. Финансово-экономическая служба','Сектор бухгалтерского учета и отчетности'],
+      [16,17,'6. Финансово-экономическая служба','Сектор экономического анализа'],
+      [18,18,'6. Финансово-экономическая служба','Сектор формирования и сопровождения государственных программ'],
+      [19,20,'7. Управление государственной гражданской службы и кадровой политики','Отдел государственной гражданской службы'],
+      [21,28,'7. Управление государственной гражданской службы и кадровой политики','Сектор делопроизводства'],
+      [29,29,'8. Управление содержания территорий','Отдел содержания территорий и мониторинга коммунальной техники'],
+      [30,30,'8. Управление содержания территорий','Отдел анализа бюджетов и формирования титульных списков объектов благоустройства'],
+      [31,34,'9.  Контрольное управление служебных проверок и инспектирования','Сектор инспектирования'],
+      [35,35,'10. Управление по развитию цифровых сервисов','Отдел внедрения и сопровождения проектов'],
+      [36,52,'10. Управление по развитию цифровых сервисов','Сектор ЦОД'],
+      [53,53,'10. Управление по развитию цифровых сервисов','Сектор ЦОД (Табалова)'],
+      [54,64,'10. Управление по развитию цифровых сервисов','Сектор ЦОД'],
+      [65,101,'11. Сектор мониторинга и рассмотрения обращений граждан',null],
+      [102,103,'12. Управление правового обеспечения и судебно-договорной работы','Отдел правового обеспечения деятельности по обращению с отходами'],
+      [104,105,'13. Управление закупок','Сектор материально-технического обеспечения'],
+      [106,107,'13. Управление закупок','Отдел контрактной работы'],
+      [108,109,'15. Управление по работе с управляющими организациями','Отдел по работе с управляющими организациями'],
+      [110,112,'15. Управление по работе с управляющими организациями','Отдел лицензирования'],
+      [113,115,'16. Управление благоустройства территорий и фондов капитального ремонта','Отдел по надзору за формированием фондов капитального ремонта'],
+      [116,117,'16. Управление благоустройства территорий и фондов капитального ремонта','Отдел благоустройства территорий'],
+      [118,120,'18. Управление по обращению с отходами','Отдел по внедрению территориальной схемы обращения с отходами и работе с региональными операторами по обращению с твердыми коммунальными отходами'],
+      [121,123,'18. Управление по обращению с отходами','Отдел по вопросам создания объектов обращения с отходами'],
+      [124,125,'18. Управление по обращению с отходами','Отдел по работе с инвестиционными и производственными программами в области обращения с твердыми коммунальными отходами'],
+      [126,126,'19. Отдел по федеральному государственному экологическому контролю (надзору)',null],
+      [127,127,'19. Отдел по федеральному государственному экологическому контролю (надзору)','(Атлас)'],
+      [128,130,'20. Сектор нормативов накопления твердых коммунальных отходов',null],
+      [131,132,'20. Сектор нормативов накопления твердых коммунальных отходов','Отдел надзора за газовой безопасностью'],
+      [133,133,'20. Сектор нормативов накопления твердых коммунальных отходов','Отдел организации и контроля надзорной деятельности'],
+      [134,135,'11. Сектор мониторинга и рассмотрения обращений граждан',null],
+      [136,141,null,null]
+    ];
+    const ministryFor=n=>{
+      n=Number(n);
+      const r=ministryRules.find(a=>n>=a[0]&&n<=a[1]);
+      return r?{od:r[2],sec:r[3]}:null;
+    };
+    const dMin=html.match(/const D=(\\[.*?\\]);\\nconst HALF_EXTRA=/s);
+    const vMin=html.match(/const VACANCIES_SOURCE=(\\[.*?\\]);\\nlet viewMode=/s);
+    if(!dMin||!vMin)throw new Error('Минчистоты: не найдены D / VACANCIES_SOURCE');
+    let DM=JSON.parse(dMin[1]), VM=JSON.parse(vMin[1]);
+    let linked=0, unlinked=0;
+    for(const x of [...DM,...VM]){
+      const m=ministryFor(x.regNo);
+      if(m&&m.od){
+        x.ministryDept=m.od;
+        x.ministrySector=m.sec||null;
+        x.od=m.od;
+        x.sec=m.sec||null;
+        linked++;
+      }else{
+        x.ministryDept=null;
+        x.ministrySector=null;
+        if(Number(x.regNo)>=136&&Number(x.regNo)<=141)unlinked++;
+      }
+    }
+    if(linked<130)throw new Error('Минчистоты: заполнено только '+linked+' позиций');
+    html=html.replace(/const D=(\\[.*?\\]);\\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(DM)+';\\nconst HALF_EXTRA=');
+    html=html.replace(/const VACANCIES_SOURCE=(\\[.*?\\]);\\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(VM)+';\\nlet viewMode=');
+
+    html=html.replace(/function quickFilter\\(v\\)\\{.*?\\n\\}/s,
+"function quickFilter(v){\\n  $('fStatus').value=''; $('fRate').value=''; $('fRemote').value=''; $('fDeputy').value=''; $('fDept').value=''; $('fInternal').value=''; if($('fMinistryDept')) $('fMinistryDept').value=''; $('q').value='';\\n  viewMode=(v==='accounted'||v==='0.5'||v==='plan')?'accounted':'rows';\\n  if(v==='0.5') $('fRate').value='0.5';\\n  else if(v==='remote') $('fRemote').value='да';\\n  else if(v==='вакансия'||v==='сокращение') $('fStatus').value=v;\\n  render();\\n}");
+
+    html=html.replace(/function filtered\\(\\)\\{.*?\\n\\}/s,
+"function filtered(){\\n  const q=$('q').value.trim().toLowerCase(), z=$('fDeputy').value, s=$('fStatus').value, r=$('fRate').value, rem=$('fRemote').value, d=$('fDept').value, i=$('fInternal').value, md=$('fMinistryDept')?$('fMinistryDept').value:'';\\n  const source=viewMode==='accounted'?[...D,...VACANCIES_SOURCE]:(s==='вакансия'?VACANCIES_SOURCE:(s==='сокращение'||z?[...D,...VACANCIES_SOURCE]:D));\\n  return source.filter(x=>(!z||(z==='ЦСТ'?(x.project==='ЦСТ'||x.i==='ЦСТ'):x.z===z))&&(!s||(s==='сокращение'?x.reduction===true:(s==='вакансия'?x.type==='Вакансия':String(x.s||'').toLowerCase()===String(s).toLowerCase())))&&(!r||String(x.r)===r)&&(!d||x.d===d)&&(!i||x.i===i)&&(!md||x.ministryDept===md)&&(!rem||(rem==='да'?String(x.rem||'').toLowerCase()==='да':String(x.rem||'').toLowerCase()!=='да'))&&(!q||[x.f,x.z,x.zf,x.d,x.b,x.i,x.op,x.od,x.sec,x.ministryDept,x.ministrySector,x.np,x.hrn].join(' ').toLowerCase().includes(q)));\\n}");
+
+    const enhancer='<script>(function(){'+
+      'function byId(id){return document.getElementById(id)};'+
+      'var anchor=byId("fInternal")||byId("fDept");'+
+      'if(anchor&&!byId("fMinistryDept")){'+
+        'var sel=document.createElement("select");sel.id="fMinistryDept";'+
+        'var deps=Array.from(new Set([].concat(D,VACANCIES_SOURCE).map(function(x){return x.ministryDept}).filter(Boolean)));'+
+        'deps.sort(function(a,b){var na=parseInt(a,10)||999,nb=parseInt(b,10)||999;return na-nb||a.localeCompare(b,"ru")});'+
+        'sel.innerHTML="<option value=\\"\\">Все подразделения Минчистоты</option>"+deps.map(function(v){var e=v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\"/g,"&quot;");return "<option value=\\""+e+"\\">"+e+"</option>"}).join("");'+
+        'anchor.insertAdjacentElement("afterend",sel);sel.addEventListener("change",function(){render()});'+
+      '}'+
+      'var baseRender=render;'+
+      'render=function(){baseRender();var tb=byId("tbody");if(!tb)return;var table=tb.closest("table");var hr=table&&table.querySelector("thead tr");if(hr&&!hr.querySelector("[data-ministry-head]")){var th=document.createElement("th");th.setAttribute("data-ministry-head","1");th.textContent="Подразделение Минчистоты";hr.appendChild(th)}var data=viewMode==="rates"?buildRateUnits():filtered();var trs=Array.from(tb.querySelectorAll("tr"));var idx=0;trs.forEach(function(tr){if(tr.querySelector(".empty")){if(tr.firstElementChild)tr.firstElementChild.colSpan=8;return}if(!tr.children.length)return;var x=data[idx++]||{};var td=document.createElement("td");td.className="ministry-cell";var a=x.ministryDept||x.od||"",b=x.ministrySector||x.sec||"";td.textContent=a?(b?a+" / "+b:a):"—";tr.appendChild(td)})};'+
+      'render();'+
+    '})();<\\/script>';
+    html=html.replace('</head>','<style>.ministry-cell{min-width:300px;max-width:430px;white-space:normal;line-height:1.35}</style></head>');
+    html=html.replace('</body>',enhancer+'</body>');
+  }
+  // MINISTRY_STRUCTURE_15_09_2026_END
+\`;
+
+  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+marker);
   document.open();document.write(src);document.close();
 })().catch(e=>{
   document.body.innerHTML='<div style="font:16px Arial;padding:30px;color:#991b1b"><b>Ошибка загрузки дашборда</b><br><br>'+String(e.message||e)+'</div>';
