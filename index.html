@@ -109,7 +109,7 @@
   // AUTHORITATIVE_CURRENT_STATE_15_09_2026_END
 `;
 
-  const patchMin=String.raw\`
+  const patchMin=String.raw`
   // MINISTRY_STRUCTURE_15_09_2026_START
   {
     const ministryRules=[
@@ -199,7 +199,7 @@
     html=html.replace('</body>',enhancer+'</body>');
   }
   // MINISTRY_STRUCTURE_15_09_2026_END
-\`;
+`;
 
   src=src.replace(marker,patch15+'\n'+patchMin+'\n'+marker);
   document.open();document.write(src);document.close();
