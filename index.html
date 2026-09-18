@@ -194,7 +194,7 @@
       'var baseRender=render;'+
       'render=function(){baseRender();var tb=byId("tbody");if(!tb)return;var table=tb.closest("table");var hr=table&&table.querySelector("thead tr");if(hr&&!hr.querySelector("[data-ministry-head]")){var th=document.createElement("th");th.setAttribute("data-ministry-head","1");th.textContent="Подразделение Минчистоты";hr.appendChild(th)}var data=viewMode==="rates"?buildRateUnits():filtered();var trs=Array.from(tb.querySelectorAll("tr"));var idx=0;trs.forEach(function(tr){if(tr.querySelector(".empty")){if(tr.firstElementChild)tr.firstElementChild.colSpan=8;return}if(!tr.children.length)return;var x=data[idx++]||{};var td=document.createElement("td");td.className="ministry-cell";var a=x.ministryDept||x.od||"",b=x.ministrySector||x.sec||"";td.textContent=a?(b?a+" / "+b:a):"—";tr.appendChild(td)})};'+
       'render();'+
-    '})();<\\/script>';
+    '})();<\/script>';
     html=html.replace('</head>','<style>.ministry-cell{min-width:300px;max-width:430px;white-space:normal;line-height:1.35}</style></head>');
     html=html.replace('</body>',enhancer+'</body>');
   }
