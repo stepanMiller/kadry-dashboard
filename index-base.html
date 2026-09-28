@@ -183,7 +183,7 @@ html=html.replace('актуальность 08.07.2026','актуальност�
 
   // DUDENKOVA_NEMIROVA_27_07_START
   {
-    const transitionReached=Date.now()>=Date.UTC(2026,8,26);
+    const transitionReached=false;
     html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,(all,json)=>{
       let rows=JSON.parse(json);
       const nemirova=rows.find(x=>String(x.f||'').trim().startsWith('Немирова '));
@@ -290,7 +290,7 @@ html=html.replace('актуальность 08.07.2026','актуальност�
       assign('Тещенко Ирина Владимировна',
         {z:'Бондарева',zf:'Бондарева',i:'ЦСТ',project:'ЦСТ'},
         'Сотрудник Бондаревой П.В.; ответственная ЦСТ по уточнению от 28.07.2026.');
-      const expected=Date.now()<Date.UTC(2026,8,26)?8:7;
+      const expected=8;
       if(updated!==expected) throw new Error('Сверка ЦСТ: обновлено '+updated+' из '+expected+' подтверждённых сотрудников');
       return 'const D='+JSON.stringify(rows)+';\nconst HALF_EXTRA=';
     });
