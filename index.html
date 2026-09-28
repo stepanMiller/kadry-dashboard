@@ -176,10 +176,10 @@
     html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(VM)+';\nlet viewMode=');
 
     html=html.replace(/function quickFilter\(v\)\{.*?\n\}/s,
-"function quickFilter(v){\n  $('fStatus').value=''; $('fRate').value=''; $('fRemote').value=''; $('fDeputy').value=''; $('fDept').value=''; $('fInternal').value=''; if($('fMinistryDept')) $('fMinistryDept').value=''; $('q').value='';\n  viewMode=(v==='accounted'||v==='0.5'||v==='plan')?'accounted':'rows';\n  if(v==='0.5') $('fRate').value='0.5';\n  else if(v==='remote') $('fRemote').value='да';\n  else if(v==='вакансия'||v==='сокращение') $('fStatus').value=v;\n  render();\n}");
+"function quickFilter(v){\n  $('fStatus').value=''; $('fRate').value=''; $('fRemote').value=''; $('fDeputy').value=''; $('fDept').value=''; $('fInternal').value=''; if(window.__internalSelected)window.__internalSelected.clear(); if(window.__refreshInternalSummary)window.__refreshInternalSummary(); if($('fMinistryDept')) $('fMinistryDept').value=''; $('q').value='';\n  viewMode=(v==='accounted'||v==='0.5'||v==='plan')?'accounted':'rows';\n  if(v==='0.5') $('fRate').value='0.5';\n  else if(v==='remote') $('fRemote').value='да';\n  else if(v==='вакансия'||v==='сокращение') $('fStatus').value=v;\n  render();\n}");
 
     html=html.replace(/function filtered\(\)\{.*?\n\}/s,
-"function filtered(){\n  const q=$('q').value.trim().toLowerCase(), z=$('fDeputy').value, s=$('fStatus').value, r=$('fRate').value, rem=$('fRemote').value, d=$('fDept').value, i=$('fInternal').value, md=$('fMinistryDept')?$('fMinistryDept').value:'';\n  const source=viewMode==='accounted'?[...D,...VACANCIES_SOURCE]:(s==='вакансия'?VACANCIES_SOURCE:(s==='сокращение'||z||d||i||md||(rem==='да')?[...D,...VACANCIES_SOURCE]:D));\n  return source.filter(x=>(!z||x.z===z)&&(!s||(s==='сокращение'?x.reduction===true:(s==='вакансия'?x.type==='Вакансия':String(x.s||'').toLowerCase()===String(s).toLowerCase())))&&(!r||String(x.r)===r)&&(!d||x.d===d)&&(!i||x.i===i)&&(!md||x.ministryDept===md)&&(!rem||(rem==='да'?String(x.rem||'').toLowerCase()==='да':String(x.rem||'').toLowerCase()!=='да'))&&(!q||[x.f,x.z,x.zf,x.d,x.b,x.i,x.op,x.od,x.sec,x.ministryDept,x.ministrySector,x.np,x.hrn].join(' ').toLowerCase().includes(q)));\n}");
+"function filtered(){\n  const q=$('q').value.trim().toLowerCase(), z=$('fDeputy').value, s=$('fStatus').value, r=$('fRate').value, rem=$('fRemote').value, d=$('fDept').value, iSel=(window.__internalSelected&&window.__internalSelected.size)?Array.from(window.__internalSelected):[], md=$('fMinistryDept')?$('fMinistryDept').value:'';\n  const source=viewMode==='accounted'?[...D,...VACANCIES_SOURCE]:(s==='вакансия'?VACANCIES_SOURCE:(s==='сокращение'||z||d||iSel.length||md||(rem==='да')?[...D,...VACANCIES_SOURCE]:D));\n  return source.filter(x=>(!z||x.z===z)&&(!s||(s==='сокращение'?x.reduction===true:(s==='вакансия'?x.type==='Вакансия':String(x.s||'').toLowerCase()===String(s).toLowerCase())))&&(!r||String(x.r)===r)&&(!d||x.d===d)&&(!iSel.length||iSel.includes(String(x.i||'')))&&(!md||x.ministryDept===md)&&(!rem||(rem==='да'?String(x.rem||'').toLowerCase()==='да':String(x.rem||'').toLowerCase()!=='да'))&&(!q||[x.f,x.z,x.zf,x.d,x.b,x.i,x.op,x.od,x.sec,x.ministryDept,x.ministrySector,x.np,x.hrn].join(' ').toLowerCase().includes(q)));\n}");
 
     const enhancer='<script>(function(){'+
       'function byId(id){return document.getElementById(id)};'+
@@ -199,6 +199,24 @@
     '})();<\/script>';
     html=html.replace('</head>','<style>.ministry-cell{min-width:300px;max-width:430px;white-space:normal;line-height:1.35}</style></head>');
     html=html.replace('</body>',enhancer+'</body>');
+    const internalMultiEnhancer='<script>(function(){'+
+      'var sel=document.getElementById("fInternal");if(!sel)return;'+
+      'window.__internalSelected=window.__internalSelected||new Set();'+
+      'var values=Array.from(new Set([].concat(D,VACANCIES_SOURCE).map(function(x){return String(x.i||"").trim()}).filter(Boolean))).sort(function(a,b){return a.localeCompare(b,"ru")});'+
+      'sel.style.display="none";'+
+      'var box=document.createElement("details");box.id="fInternalMulti";box.className="internal-multi";'+
+      'var sum=document.createElement("summary");sum.textContent="Закреплено: все";box.appendChild(sum);'+
+      'var menu=document.createElement("div");menu.className="internal-multi-menu";'+
+      'var clear=document.createElement("button");clear.type="button";clear.className="internal-multi-clear";clear.textContent="Снять выбор";menu.appendChild(clear);'+
+      'values.forEach(function(v){var lab=document.createElement("label");lab.className="internal-multi-option";var cb=document.createElement("input");cb.type="checkbox";cb.value=v;var span=document.createElement("span");span.textContent=v;lab.appendChild(cb);lab.appendChild(span);menu.appendChild(lab);cb.addEventListener("change",function(){if(cb.checked)window.__internalSelected.add(v);else window.__internalSelected.delete(v);window.__refreshInternalSummary();render()})});'+
+      'box.appendChild(menu);sel.insertAdjacentElement("afterend",box);'+
+      'window.__refreshInternalSummary=function(){var a=Array.from(window.__internalSelected);sum.textContent=!a.length?"Закреплено: все":(a.length<=2?"Закреплено: "+a.join(", "):"Закреплено: выбрано "+a.length);menu.querySelectorAll("input[type=checkbox]").forEach(function(cb){cb.checked=window.__internalSelected.has(cb.value)})};'+
+      'clear.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();window.__internalSelected.clear();window.__refreshInternalSummary();render()});'+
+      'document.addEventListener("click",function(e){if(box.open&&!box.contains(e.target))box.removeAttribute("open")});'+
+      'window.__refreshInternalSummary();'+
+    '})();<\/script>';
+    html=html.replace('</head>','<style>.internal-multi{position:relative;min-width:210px}.internal-multi summary{box-sizing:border-box;min-height:40px;padding:9px 34px 9px 12px;border:1px solid #d8dee6;border-radius:9px;background:#fff;cursor:pointer;list-style:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.internal-multi summary::-webkit-details-marker{display:none}.internal-multi summary:after{content:"▾";position:absolute;right:12px;top:9px;color:#64748b}.internal-multi[open] summary:after{content:"▴"}.internal-multi-menu{position:absolute;z-index:1000;left:0;top:calc(100% + 6px);min-width:250px;max-height:330px;overflow:auto;padding:8px;background:#fff;border:1px solid #d8dee6;border-radius:10px;box-shadow:0 14px 35px rgba(15,23,42,.16)}.internal-multi-option{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:7px;cursor:pointer;white-space:nowrap}.internal-multi-option:hover{background:#f4f7f9}.internal-multi-option input{width:16px;height:16px}.internal-multi-clear{width:100%;margin-bottom:6px;padding:7px 9px;border:0;border-radius:7px;background:#eef3f6;cursor:pointer;font:inherit;color:#334155}.internal-multi-clear:hover{background:#e2e8f0}</style></head>');
+    html=html.replace('</body>',internalMultiEnhancer+'</body>');
   }
   // MINISTRY_STRUCTURE_15_09_2026_END
 `;
