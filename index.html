@@ -9,7 +9,7 @@
 <div style="font-family:Arial,sans-serif;padding:40px">Загрузка дашборда…</div>
 <script>
 (async()=>{
-  let src=await fetch('index-08.html?v=20260928i',{cache:'no-store'}).then(r=>{
+  let src=await fetch('index-08.html?v=20260928j',{cache:'no-store'}).then(r=>{
     if(!r.ok)throw new Error('index-08.html: '+r.status);
     return r.text();
   });
@@ -319,6 +319,10 @@
 
     html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(D24)+';\nconst HALF_EXTRA=');
     html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(V24)+';\nlet viewMode=');
+    html=html.replace(
+      "if(cstCount) order.splice(Math.min(7,order.length),0,['ЦСТ',cstCount]);",
+      "if(cstCount&&!counts['ЦСТ']) order.splice(Math.min(7,order.length),0,['ЦСТ',cstCount]);"
+    );
     html=html.replaceAll('актуальность 15.09.2026','актуальность 24.09.2026');
     html=html.replaceAll('финальная сверка 15.09.2026.','финальная сверка 24.09.2026.');
     html=html.replaceAll('Кадровый_дашборд_15-09-2026.xls','Кадровый_дашборд_24-09-2026.xls');
