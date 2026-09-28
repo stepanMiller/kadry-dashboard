@@ -9,7 +9,7 @@
 <div style="font-family:Arial,sans-serif;padding:40px">Загрузка дашборда…</div>
 <script>
 (async()=>{
-  let src=await fetch('index-08.html?v=20260928f',{cache:'no-store'}).then(r=>{
+  let src=await fetch('index-08.html?v=20260928g',{cache:'no-store'}).then(r=>{
     if(!r.ok)throw new Error('index-08.html: '+r.status);
     return r.text();
   });
@@ -191,11 +191,8 @@
         'sel.innerHTML="<option value=\\"\\">Все подразделения Минчистоты</option>"+deps.map(function(v){var e=v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\"/g,"&quot;");return "<option value=\\""+e+"\\">"+e+"</option>"}).join("");'+
         'anchor.insertAdjacentElement("afterend",sel);sel.addEventListener("change",function(){render()});'+
       '}'+
-      'var remoteTro={id:"REMOTE-ORDER-TROSHINA",type:"Сотрудник",f:"Трошина Алина Сергеевна",alias:"Трошина А.С.",state:"Работа",s:"работает",reduction:false,r:1,z:"Викулова",zf:"Викулова Светлана Константиновна",b:"Отдел сопровождения",d:"Отдел сопровождения",np:"Главный специалист",rem:"да",remoteMode:"дистанционная работа",remoteOrder:"01-202/26 от 13.08.2026",m:"Дистанционная работа по действующему приказу № 01-202/26 от 13.08.2026; до 30.09.2026 включительно.",hrn:"Отдельный контур удалёнки: кадровые изменения не снимают режим до фактического выбытия или прекращения действия приказа."};'+
-      'var baseFiltered=filtered;'+
-      'filtered=function(){var rows=baseFiltered();var rf=byId("fRemote");if(rf&&rf.value==="да"){rows=rows.filter(function(x){return x.type!=="Вакансия"});if(!rows.some(function(x){return String(x.f||"").trim()==="Трошина Алина Сергеевна"})){var z=byId("fDeputy")?byId("fDeputy").value:"",d=byId("fDept")?byId("fDept").value:"",i=byId("fInternal")?byId("fInternal").value:"",md=byId("fMinistryDept")?byId("fMinistryDept").value:"",q=byId("q")?byId("q").value.trim().toLowerCase():"";var ok=(!z||remoteTro.z===z)&&(!d||remoteTro.d===d)&&(!i||remoteTro.i===i)&&(!md||remoteTro.ministryDept===md)&&(!q||[remoteTro.f,remoteTro.z,remoteTro.zf,remoteTro.d,remoteTro.b,remoteTro.np,remoteTro.hrn].join(" ").toLowerCase().includes(q));if(ok)rows.push(remoteTro)}}return rows};'+
       'var baseRenderKpis=renderKpis;'+
-      'renderKpis=function(){baseRenderKpis();var remoteEmployees=D.filter(function(x){return x.type!=="Вакансия"&&String(x.rem||"").toLowerCase()==="да"});if(!remoteEmployees.some(function(x){return String(x.f||"").trim()==="Трошина Алина Сергеевна"}))remoteEmployees.push(remoteTro);var cards=Array.from(document.querySelectorAll(".kpi"));var card=cards.find(function(el){var label=el.querySelector(".label");return label&&label.textContent.trim()==="Удалёнка"});if(card){var value=card.querySelector(".value"),hint=card.querySelector(".hint,.sub");if(value)value.textContent=remoteEmployees.length;if(hint)hint.textContent="сотрудников"}};'+
+      'renderKpis=function(){baseRenderKpis();var allRemote=[].concat(D,VACANCIES_SOURCE).filter(function(x){return String(x.rem||"").toLowerCase()==="да"});var remoteEmployees=allRemote.filter(function(x){return x.type!=="Вакансия"});var remoteVacancies=allRemote.filter(function(x){return x.type==="Вакансия"});var cards=Array.from(document.querySelectorAll(".kpi"));var card=cards.find(function(el){var label=el.querySelector(".label");return label&&label.textContent.trim()==="Удалёнка"});if(card){var value=card.querySelector(".value"),hint=card.querySelector(".hint,.sub");if(value)value.textContent=allRemote.length;if(hint)hint.textContent=remoteEmployees.length+" сотрудников + "+remoteVacancies.length+" вакансия"}};'+
       'var baseRender=render;'+
       'render=function(){baseRender();var tb=byId("tbody");if(!tb)return;var table=tb.closest("table");var hr=table&&table.querySelector("thead tr");if(hr&&!hr.querySelector("[data-ministry-head]")){var th=document.createElement("th");th.setAttribute("data-ministry-head","1");th.textContent="Подразделение Минчистоты";hr.appendChild(th)}var data=viewMode==="rates"?buildRateUnits():filtered();var trs=Array.from(tb.querySelectorAll("tr"));var idx=0;trs.forEach(function(tr){if(tr.querySelector(".empty")){if(tr.firstElementChild)tr.firstElementChild.colSpan=8;return}if(!tr.children.length)return;var x=data[idx++]||{};var td=document.createElement("td");td.className="ministry-cell";var a=x.ministryDept||x.od||"",b=x.ministrySector||x.sec||"";td.textContent=a?(b?a+" / "+b:a):"—";tr.appendChild(td)})};'+
       'render();'+
@@ -250,7 +247,7 @@
       np:'Главный специалист',op:'Старший инспектор',
       od:'10. Управление по развитию цифровых сервисов',sec:'Сектор ЦОД',
       ministryDept:'10. Управление по развитию цифровых сервисов',ministrySector:'Сектор ЦОД',
-      o:'00ЗК-000018 от 30.04.2026',hd:null,rem:null,remoteMode:null,remoteOrder:null,i:null,project:null,
+      o:'00ЗК-000018 от 30.04.2026',hd:null,rem:'да',remoteMode:'дистанционная работа',remoteOrder:'01-202/26 от 13.08.2026',i:null,project:null,
       m:'Изменение по реестру 24.09.2026: позиция № 60 отражена как вакансия, 1 ставка, под сокращение. Примечание реестра: до 25.09.2026 вместо Дуденковой Н.Д., уволенной 24.07.2026.',
       hrn:'Реестр 24.09.2026: вакансия по позиции № 60, ставка 1, сокращение.'
     });
