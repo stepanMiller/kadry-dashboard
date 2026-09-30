@@ -9,7 +9,7 @@
 <div style="font-family:Arial,sans-serif;padding:40px">Загрузка дашборда…</div>
 <script>
 (async()=>{
-  let src=await fetch('index-08.html?v=20261001b',{cache:'no-store'}).then(r=>{
+  let src=await fetch('index-08.html?v=20260928m',{cache:'no-store'}).then(r=>{
     if(!r.ok)throw new Error('index-08.html: '+r.status);
     return r.text();
   });
@@ -351,44 +351,22 @@
       }
     }
 
-    // 01.10.2026: применяем подтверждённое сокращение по людям/ставкам.
-    // В списке сокращения: 15 сотрудников = 13,5 ставки, 7 вакансий = 6,5 ставки.
-    // Дополнительно штатка 01.10 убирает одну неотмеченную ранее вакансию ведущего специалиста после Ореховой.
-    const cutEmployees=D24.filter(x=>x.reduction===true);
-    const cutVacancies=V24.filter(x=>x.reduction===true);
-    const cutEmployeeFte=cutEmployees.reduce((s,x)=>s+Number(x.r||0),0);
-    const cutVacancyFte=cutVacancies.reduce((s,x)=>s+Number(x.r||0),0);
-    if(cutEmployees.length!==15||Math.abs(cutEmployeeFte-13.5)>1e-9)throw new Error('Сверка сокращения сотрудников 01.10: '+cutEmployees.length+' / '+cutEmployeeFte+' вместо 15 / 13,5');
-    if(cutVacancies.length!==7||Math.abs(cutVacancyFte-6.5)>1e-9)throw new Error('Сверка сокращения вакансий 01.10: '+cutVacancies.length+' / '+cutVacancyFte+' вместо 7 / 6,5');
-
-    const extraVac=V24.find(x=>x.id==='VAC-20260821-014');
-    if(!extraVac||String(extraVac.np||'')!=='Ведущий специалист'||Number(extraVac.r)!==1)throw new Error('Сверка штатки 01.10: не найдена вакансия ведущего специалиста после Ореховой');
-
-    D24=D24.filter(x=>x.reduction!==true);
-    V24=V24.filter(x=>x.reduction!==true&&x.id!=='VAC-20260821-014');
-
-    // Итог по штатке 01.10: 118 штатных единиц.
+    // Контроль строго по итогам Excel 24.09: 139 штатных ставок = 130,5 занято + 8,5 вакантно.
     const dFte=D24.reduce((s,x)=>s+Number(x.r||0),0);
     const vFte=V24.reduce((s,x)=>s+Number(x.r||0),0);
-    if(D24.length!==120||Math.abs(dFte-117)>1e-9)throw new Error('Сверка сотрудников 01.10: '+D24.length+' / '+dFte+' вместо 120 / 117');
-    if(V24.length!==1||Math.abs(vFte-1)>1e-9)throw new Error('Сверка вакансий 01.10: '+V24.length+' / '+vFte+' вместо 1 / 1');
-    if(Math.abs(dFte+vFte-118)>1e-9)throw new Error('Сверка общего штата 01.10: '+(dFte+vFte)+' вместо 118');
+    if(D24.length!==135||Math.abs(dFte-130.5)>1e-9)throw new Error('Сверка сотрудников 24.09: '+D24.length+' / '+dFte+' вместо 135 / 130,5');
+    if(V24.length!==9||Math.abs(vFte-8.5)>1e-9)throw new Error('Сверка вакансий 24.09: '+V24.length+' / '+vFte+' вместо 9 / 8,5');
+    if(Math.abs(dFte+vFte-139)>1e-9)throw new Error('Сверка общего штата 24.09: '+(dFte+vFte)+' вместо 139 ставок');
 
     html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(D24)+';\nconst HALF_EXTRA=');
     html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(V24)+';\nlet viewMode=');
-    html=html.replace('const diff=totalRates-139;','const diff=totalRates-118;');
-    html=html.replace("['Плановая численность',139,planText,'plan']","['Плановая численность',118,planText,'plan']");
-    html=html.replace("['Удалёнка',30,'29 сотрудников + 1 вакансия','remote']","['Удалёнка',remote.length,'сотрудников','remote']");
     html=html.replace(
       "if(cstCount) order.splice(Math.min(7,order.length),0,['ЦСТ',cstCount]);",
       "if(cstCount&&!counts['ЦСТ']) order.splice(Math.min(7,order.length),0,['ЦСТ',cstCount]);"
     );
-    html=html.replaceAll('актуальность 15.09.2026','актуальность 01.10.2026');
-    html=html.replaceAll('актуальность 24.09.2026','актуальность 01.10.2026');
-    html=html.replaceAll('финальная сверка 15.09.2026.','финальная сверка 01.10.2026.');
-    html=html.replaceAll('финальная сверка 24.09.2026.','финальная сверка 01.10.2026.');
-    html=html.replaceAll('Кадровый_дашборд_15-09-2026.xls','Кадровый_дашборд_01-10-2026.xls');
-    html=html.replaceAll('Кадровый_дашборд_24-09-2026.xls','Кадровый_дашборд_01-10-2026.xls');
+    html=html.replaceAll('актуальность 15.09.2026','актуальность 24.09.2026');
+    html=html.replaceAll('финальная сверка 15.09.2026.','финальная сверка 24.09.2026.');
+    html=html.replaceAll('Кадровый_дашборд_15-09-2026.xls','Кадровый_дашборд_24-09-2026.xls');
   }
   // AUTHORITATIVE_CURRENT_STATE_28_09_2026_END
 `;
