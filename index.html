@@ -102,9 +102,9 @@
 
     html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(D15)+';\nconst HALF_EXTRA=');
     html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(V15)+';\nlet viewMode=');
-    html=html.replaceAll('актуальность 08.09.2026','актуальность 15.09.2026');
-    html=html.replaceAll('финальная сверка 08.09.2026.','финальная сверка 15.09.2026.');
-    html=html.replaceAll('Кадровый_дашборд_08-09-2026.xls','Кадровый_дашборд_15-09-2026.xls');
+    html=html.replaceAll('актуальность 08.09.2026','актуальность 30.09.2026');
+    html=html.replaceAll('финальная сверка 08.09.2026.','финальная сверка 30.09.2026.');
+    html=html.replaceAll('Кадровый_дашборд_08-09-2026.xls','Кадровый_дашборд_30-09-2026.xls');
   }
   // AUTHORITATIVE_CURRENT_STATE_15_09_2026_END
 `;
@@ -192,7 +192,7 @@
         'anchor.insertAdjacentElement("afterend",sel);sel.addEventListener("change",function(){render()});'+
       '}'+
       'var baseRenderKpis=renderKpis;'+
-      'renderKpis=function(){baseRenderKpis();var allRemote=[].concat(D,VACANCIES_SOURCE).filter(function(x){return String(x.rem||"").toLowerCase()==="да"});var remoteEmployees=allRemote.filter(function(x){return x.type!=="Вакансия"});var remoteVacancies=allRemote.filter(function(x){return x.type==="Вакансия"});var cards=Array.from(document.querySelectorAll(".kpi"));var card=cards.find(function(el){var label=el.querySelector(".label");return label&&label.textContent.trim()==="Удалёнка"});if(card){var value=card.querySelector(".value"),hint=card.querySelector(".hint,.sub");if(value)value.textContent=30;if(hint)hint.textContent="29 сотрудников + 1 вакансия"}};'+
+      'renderKpis=function(){baseRenderKpis();var allRemote=[].concat(D,VACANCIES_SOURCE).filter(function(x){return String(x.rem||"").toLowerCase()==="да"});var remoteEmployees=allRemote.filter(function(x){return x.type!=="Вакансия"});var remoteVacancies=allRemote.filter(function(x){return x.type==="Вакансия"});var cards=Array.from(document.querySelectorAll(".kpi"));var card=cards.find(function(el){var label=el.querySelector(".label");return label&&label.textContent.trim()==="Удалёнка"});if(card){var value=card.querySelector(".value"),hint=card.querySelector(".hint,.sub");if(value)value.textContent=allRemote.length;if(hint)hint.textContent=remoteEmployees.length+" сотрудников"+(remoteVacancies.length?" + "+remoteVacancies.length+" вакансий":"")}};'+
       'var baseRender=render;'+
       'render=function(){baseRender();var tb=byId("tbody");if(!tb)return;var table=tb.closest("table");var hr=table&&table.querySelector("thead tr");if(hr&&!hr.querySelector("[data-ministry-head]")){var th=document.createElement("th");th.setAttribute("data-ministry-head","1");th.textContent="Подразделение Минчистоты";hr.appendChild(th)}var data=viewMode==="rates"?buildRateUnits():filtered();var trs=Array.from(tb.querySelectorAll("tr"));var idx=0;trs.forEach(function(tr){if(tr.querySelector(".empty")){if(tr.firstElementChild)tr.firstElementChild.colSpan=8;return}if(!tr.children.length)return;var x=data[idx++]||{};var td=document.createElement("td");td.className="ministry-cell";var a=x.ministryDept||x.od||"",b=x.ministrySector||x.sec||"";td.textContent=a?(b?a+" / "+b:a):"—";tr.appendChild(td)})};'+
       'render();'+
@@ -351,22 +351,65 @@
       }
     }
 
-    // Контроль строго по итогам Excel 24.09: 139 штатных ставок = 130,5 занято + 8,5 вакантно.
+    // Сокращение по реестру 24.09.2026.
+    // Контрольные величины источника: 22 строки / 21 штатная позиция / 20 ставок.
+    // Из них 15 сотрудников = 13,5 ставки; 7 вакансий = 6,5 ставки.
+    const expectedCutEmployees=[
+      'Куракин Филипп Андреевич',
+      'Брюзгина Ксения Константиновна',
+      'Дмитриева Милена Юрьевна',
+      'Егиазарова Стелла Гарриевна',
+      'Карасев Олег Робертович',
+      'Волкова Ольга Игоревна',
+      'Милосердова Екатерина Николаевна',
+      'Никольский Максим Олегович',
+      'Севостьянова Ольга Владимировна',
+      'Федорова Ольга Николаевна',
+      'Эльдаров Муслим Арсаналиевич',
+      'Жаров Павел Михайлович',
+      'Сташкова Анжелика Витальевна',
+      'Чумакова Анастасия Андреевна',
+      'Мефёд Елена Геннадьевна'
+    ];
+    const cutEmployees=D24.filter(x=>x.reduction===true);
+    const cutVacancies=V24.filter(x=>x.reduction===true);
+    const cutNames=cutEmployees.map(x=>String(x.f||'').trim()).sort();
+    const expectedNames=[...expectedCutEmployees].sort();
+    if(JSON.stringify(cutNames)!==JSON.stringify(expectedNames)){
+      throw new Error('Список сотрудников на сокращение не совпал с реестром 24.09');
+    }
+    const cutEmployeeFte=cutEmployees.reduce((s,x)=>s+Number(x.r||0),0);
+    const cutVacancyFte=cutVacancies.reduce((s,x)=>s+Number(x.r||0),0);
+    if(cutEmployees.length!==15||Math.abs(cutEmployeeFte-13.5)>1e-9)
+      throw new Error('Сокращение сотрудников: '+cutEmployees.length+' / '+cutEmployeeFte+' вместо 15 / 13,5');
+    if(cutVacancies.length!==7||Math.abs(cutVacancyFte-6.5)>1e-9)
+      throw new Error('Сокращение вакансий: '+cutVacancies.length+' / '+cutVacancyFte+' вместо 7 / 6,5');
+    if(Math.abs(cutEmployeeFte+cutVacancyFte-20)>1e-9)
+      throw new Error('Сокращение: суммарно не 20 ставок');
+
+    D24=D24.filter(x=>x.reduction!==true);
+    V24=V24.filter(x=>x.reduction!==true);
+
+    // Итог после подтверждённого списка сокращения: 120 сотрудников / 117 ставок,
+    // 2 вакансии / 2 ставки; всего 119 ставок.
     const dFte=D24.reduce((s,x)=>s+Number(x.r||0),0);
     const vFte=V24.reduce((s,x)=>s+Number(x.r||0),0);
-    if(D24.length!==135||Math.abs(dFte-130.5)>1e-9)throw new Error('Сверка сотрудников 24.09: '+D24.length+' / '+dFte+' вместо 135 / 130,5');
-    if(V24.length!==9||Math.abs(vFte-8.5)>1e-9)throw new Error('Сверка вакансий 24.09: '+V24.length+' / '+vFte+' вместо 9 / 8,5');
-    if(Math.abs(dFte+vFte-139)>1e-9)throw new Error('Сверка общего штата 24.09: '+(dFte+vFte)+' вместо 139 ставок');
+    if(D24.length!==120||Math.abs(dFte-117)>1e-9)throw new Error('Сверка сотрудников 30.09: '+D24.length+' / '+dFte+' вместо 120 / 117');
+    if(V24.length!==2||Math.abs(vFte-2)>1e-9)throw new Error('Сверка вакансий 30.09: '+V24.length+' / '+vFte+' вместо 2 / 2');
+    if(Math.abs(dFte+vFte-119)>1e-9)throw new Error('Сверка общего штата 30.09: '+(dFte+vFte)+' вместо 119 ставок');
 
     html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(D24)+';\nconst HALF_EXTRA=');
     html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(V24)+';\nlet viewMode=');
+    html=html.replace('const diff=totalRates-139;','const diff=totalRates-119;');
+    html=html.replace("['Плановая численность',139,planText,'plan']","['Плановая численность',119,planText,'plan']");
+    html=html.replace("['Удалёнка',30,'29 сотрудников + 1 вакансия','remote']","['Удалёнка',remote.length,'сотрудников','remote']");
     html=html.replace(
       "if(cstCount) order.splice(Math.min(7,order.length),0,['ЦСТ',cstCount]);",
       "if(cstCount&&!counts['ЦСТ']) order.splice(Math.min(7,order.length),0,['ЦСТ',cstCount]);"
     );
-    html=html.replaceAll('актуальность 15.09.2026','актуальность 24.09.2026');
-    html=html.replaceAll('финальная сверка 15.09.2026.','финальная сверка 24.09.2026.');
-    html=html.replaceAll('Кадровый_дашборд_15-09-2026.xls','Кадровый_дашборд_24-09-2026.xls');
+    html=html.replaceAll('актуальность 30.09.2026','актуальность 30.09.2026');
+    html=html.replaceAll('финальная сверка 30.09.2026.','финальная сверка 30.09.2026.');
+    html=html.replaceAll('Кадровый_дашборд_30-09-2026.xls','Кадровый_дашборд_30-09-2026.xls');
   }
   // AUTHORITATIVE_CURRENT_STATE_28_09_2026_END
 `;
