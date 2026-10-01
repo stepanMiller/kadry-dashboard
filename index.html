@@ -456,6 +456,11 @@
       tesh.hrn=tesh.m;
     }
 
+    for(const pair of [['Волкова Ирина Николаевна','Лебедева АМ'],['Логинова Юлия Александровна','Лебедева АМ']]){
+      const x=D24.find(r=>String(r.f||'').trim()===pair[0]);
+      if(!x)throw new Error('Закрепление 01.10: не найден '+pair[0]);
+      x.i=pair[1];
+    }
     const dFte=D24.reduce((s,x)=>s+Number(x.r||0),0);
     const vFte=V24.reduce((s,x)=>s+Number(x.r||0),0);
     if(D24.length!==120||Math.abs(dFte-117)>1e-9)throw new Error('Сверка сотрудников 01.10: '+D24.length+' / '+dFte+' вместо 120 / 117');
