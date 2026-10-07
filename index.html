@@ -483,7 +483,59 @@
   // AUTHORITATIVE_CURRENT_STATE_28_09_2026_END
 `;
 
-  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+marker);
+
+  const patchSite=String.raw`
+  // WORKPLACE_SITES_07_10_2026_START
+  {
+    const dSite=html.match(/const D=(\\[.*?\\]);\\nconst HALF_EXTRA=/s);
+    const vSite=html.match(/const VACANCIES_SOURCE=(\\[.*?\\]);\\nlet viewMode=/s);
+    if(!dSite||!vSite)throw new Error('Площадки 07.10: не найдены D / VACANCIES_SOURCE');
+    let DS=JSON.parse(dSite[1]), VS=JSON.parse(vSite[1]);
+
+    const isPureRemote=x=>String(x.remoteMode||'').trim().toLowerCase()==='дистанционная работа';
+    for(const x of DS){
+      const name=String(x.f||'').trim();
+      const alias=String(x.alias||'').trim();
+      if(isPureRemote(x)){
+        x.site='Удалённо';
+      }else{
+        x.site='Рублёвка';
+        if(name==='Филатова Варвара Андреевна')x.site='Коккинаки';
+        if(/Дуденкова/i.test(name+' '+alias))x.site='ДПМО';
+        if(String(x.z||'').trim()==='Вовк'||String(x.z||'').trim()==='Соловьева')x.site='Рублёвка';
+      }
+    }
+    for(const x of VS)x.site=null;
+
+    const fil=DS.find(x=>String(x.f||'').trim()==='Филатова Варвара Андреевна');
+    if(!fil)throw new Error('Площадки 07.10: не найдена Филатова В.А.');
+    if(!isPureRemote(fil)&&fil.site!=='Коккинаки')throw new Error('Площадки 07.10: Филатова не привязана к Коккинаки');
+    const vovk=DS.filter(x=>String(x.z||'').trim()==='Вовк'&&!isPureRemote(x));
+    const sol=DS.filter(x=>String(x.z||'').trim()==='Соловьева'&&!isPureRemote(x));
+    if(vovk.some(x=>x.site!=='Рублёвка'))throw new Error('Площадки 07.10: блок Вовка');
+    if(sol.some(x=>x.site!=='Рублёвка'))throw new Error('Площадки 07.10: блок Соловьевой');
+
+    html=html.replace(/const D=(\\[.*?\\]);\\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(DS)+';\\nconst HALF_EXTRA=');
+    html=html.replace(/const VACANCIES_SOURCE=(\\[.*?\\]);\\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(VS)+';\\nlet viewMode=');
+
+    html=html.replace(/function filtered\\(\\)\\{.*?\\n\\}/s,
+"function filtered(){\\n  const q=$('q').value.trim().toLowerCase(), z=$('fDeputy').value, s=$('fStatus').value, r=$('fRate').value, rem=$('fRemote').value, d=$('fDept').value, iSel=(window.__internalSelected&&window.__internalSelected.size)?Array.from(window.__internalSelected):[], md=$('fMinistryDept')?$('fMinistryDept').value:'', site=$('fSite')?$('fSite').value:'';\\n  const source=viewMode==='accounted'?[...D,...VACANCIES_SOURCE]:(s==='вакансия'?VACANCIES_SOURCE:(s==='сокращение'||z||d||iSel.length||md||site||(rem==='да')?[...D,...VACANCIES_SOURCE]:D));\\n  return source.filter(x=>(!z||x.z===z)&&(!s||(s==='сокращение'?x.reduction===true:(s==='вакансия'?x.type==='Вакансия':String(x.s||'').toLowerCase()===String(s).toLowerCase())))&&(!r||String(x.r)===r)&&(!d||x.d===d)&&(!iSel.length||iSel.includes(String(x.i||'')))&&(!md||x.ministryDept===md)&&(!site||x.site===site)&&(!rem||(rem==='да'?String(x.rem||'').toLowerCase()==='да':String(x.rem||'').toLowerCase()!=='да'))&&(!q||[x.f,x.z,x.zf,x.d,x.b,x.i,x.op,x.od,x.sec,x.ministryDept,x.ministrySector,x.np,x.hrn,x.site].join(' ').toLowerCase().includes(q)));\\n}");
+
+    const siteEnhancer='<script>(function(){'+
+      'function byId(id){return document.getElementById(id)};'+
+      'var anchor=byId("fMinistryDept")||byId("fInternalMulti")||byId("fInternal")||byId("fDept");'+
+      'if(anchor&&!byId("fSite")){var sel=document.createElement("select");sel.id="fSite";var sites=Array.from(new Set([].concat(D,VACANCIES_SOURCE).map(function(x){return x.site}).filter(Boolean)));var pref={"Рублёвка":1,"Коккинаки":2,"ДПМО":3,"Удалённо":4};sites.sort(function(a,b){return (pref[a]||99)-(pref[b]||99)||a.localeCompare(b,"ru")});sel.innerHTML="<option value=\\\"\\\">Все площадки</option>"+sites.map(function(v){var e=String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\\"/g,"&quot;");return "<option value=\\\""+e+"\\\">"+e+"</option>"}).join("");anchor.insertAdjacentElement("afterend",sel);sel.addEventListener("change",function(){render()})};'+
+      'var baseQuick=quickFilter;quickFilter=function(v){var s=byId("fSite");if(s)s.value="";baseQuick(v)};'+
+      'var baseRenderSite=render;render=function(){baseRenderSite();var tb=byId("tbody");if(!tb)return;var table=tb.closest("table");var hr=table&&table.querySelector("thead tr");if(hr&&!hr.querySelector("[data-site-head]")){var th=document.createElement("th");th.setAttribute("data-site-head","1");th.textContent="Площадка";hr.appendChild(th)}var data=viewMode==="rates"?buildRateUnits():filtered();var trs=Array.from(tb.querySelectorAll("tr"));var idx=0;trs.forEach(function(tr){if(tr.querySelector(".empty")){if(tr.firstElementChild)tr.firstElementChild.colSpan=9;return}if(!tr.children.length)return;var x=data[idx++]||{};var td=document.createElement("td");td.className="site-cell";td.textContent=x.site||"—";tr.appendChild(td)})};'+
+      'render();'+
+    '})();<\\/script>';
+    html=html.replace('</head>','<style>.site-cell{min-width:120px;white-space:nowrap}</style></head>');
+    html=html.replace('</body>',siteEnhancer+'</body>');
+  }
+  // WORKPLACE_SITES_07_10_2026_END
+`;
+
+  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+marker);
   document.open();document.write(src);document.close();
 })().catch(e=>{
   document.body.innerHTML='<div style="font:16px Arial;padding:30px;color:#991b1b"><b>Ошибка загрузки дашборда</b><br><br>'+String(e.message||e)+'</div>';
