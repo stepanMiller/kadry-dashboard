@@ -531,6 +531,11 @@
     '})();<\/script>';
     html=html.replace('</head>','<style>.site-cell{min-width:120px;white-space:nowrap}</style></head>');
     html=html.replace('</body>',siteEnhancer+'</body>');
+
+    // Контрольная сверка 07.10.2026: фамильный состав работающих совпал со штатной выгрузкой.
+    html=html.replaceAll('актуальность 01.10.2026','актуальность 07.10.2026');
+    html=html.replaceAll('финальная сверка 01.10.2026.','финальная сверка 07.10.2026.');
+    html=html.replaceAll('Кадровый_дашборд_01-10-2026.xls','Кадровый_дашборд_07-10-2026.xls');
   }
   // WORKPLACE_SITES_07_10_2026_END
 `;
