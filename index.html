@@ -493,22 +493,25 @@
     let DS=JSON.parse(dSite[1]), VS=JSON.parse(vSite[1]);
 
     const isPureRemote=x=>String(x.remoteMode||'').trim().toLowerCase()==='дистанционная работа';
+    const rublevkaOwners=new Set(['Кузьмина НВ','Ладина ДД','Лебедева АМ','Соболев СВ']);
     for(const x of DS){
       const name=String(x.f||'').trim();
-      const alias=String(x.alias||'').trim();
       if(isPureRemote(x)){
         x.site='Удалённо';
       }else{
-        x.site='Рублёвка';
-        if(name==='Филатова Варвара Андреевна')x.site='Коккинаки';
-        if(/Дудова/i.test(name+' '+alias))x.site='ДПМО';
+        x.site='Новатор';
+        if(rublevkaOwners.has(String(x.i||'').trim()))x.site='Рублёвка';
         if(String(x.z||'').trim()==='Вовк'||String(x.z||'').trim()==='Соловьева')x.site='Рублёвка';
+        if(name==='Дудова Олеся Николаевна')x.site='ДПМО';
+        if(name==='Филатова Варвара Андреевна')x.site='Коккинаки';
       }
     }
     for(const x of VS)x.site=null;
 
+    const dud=DS.find(x=>String(x.f||'').trim()==='Дудова Олеся Николаевна');
     const fil=DS.find(x=>String(x.f||'').trim()==='Филатова Варвара Андреевна');
-    if(!fil)throw new Error('Площадки 07.10: не найдена Филатова В.А.');
+    if(!dud||!fil)throw new Error('Площадки 07.10: не найдены Дудова/Филатова');
+    if(!isPureRemote(dud)&&dud.site!=='ДПМО')throw new Error('Площадки 07.10: Дудова не привязана к ДПМО');
     if(!isPureRemote(fil)&&fil.site!=='Коккинаки')throw new Error('Площадки 07.10: Филатова не привязана к Коккинаки');
     const vovk=DS.filter(x=>String(x.z||'').trim()==='Вовк'&&!isPureRemote(x));
     const sol=DS.filter(x=>String(x.z||'').trim()==='Соловьева'&&!isPureRemote(x));
@@ -524,7 +527,7 @@
     const siteEnhancer='<script>(function(){'+
       'function byId(id){return document.getElementById(id)};'+
       'var anchor=byId("fMinistryDept")||byId("fInternalMulti")||byId("fInternal")||byId("fDept");'+
-      'if(anchor&&!byId("fSite")){var sel=document.createElement("select");sel.id="fSite";var sites=Array.from(new Set([].concat(D,VACANCIES_SOURCE).map(function(x){return x.site}).filter(Boolean)));var pref={"Рублёвка":1,"Коккинаки":2,"ДПМО":3,"Удалённо":4};sites.sort(function(a,b){return (pref[a]||99)-(pref[b]||99)||a.localeCompare(b,"ru")});sel.innerHTML="<option value=\\"\\">Все площадки</option>"+sites.map(function(v){var e=String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\"/g,"&quot;");return "<option value=\\""+e+"\\">"+e+"</option>"}).join("");anchor.insertAdjacentElement("afterend",sel);sel.addEventListener("change",function(){render()})};'+
+      'if(anchor&&!byId("fSite")){var sel=document.createElement("select");sel.id="fSite";var sites=Array.from(new Set([].concat(D,VACANCIES_SOURCE).map(function(x){return x.site}).filter(Boolean)));var pref={"Новатор":1,"Рублёвка":2,"Коккинаки":3,"ДПМО":4,"Удалённо":5};sites.sort(function(a,b){return (pref[a]||99)-(pref[b]||99)||a.localeCompare(b,"ru")});sel.innerHTML="<option value=\\"\\">Все площадки</option>"+sites.map(function(v){var e=String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\"/g,"&quot;");return "<option value=\\""+e+"\\">"+e+"</option>"}).join("");anchor.insertAdjacentElement("afterend",sel);sel.addEventListener("change",function(){render()})};'+
       'var baseQuick=quickFilter;quickFilter=function(v){var s=byId("fSite");if(s)s.value="";baseQuick(v)};'+
       'var baseRenderSite=render;render=function(){baseRenderSite();var tb=byId("tbody");if(!tb)return;var table=tb.closest("table");var hr=table&&table.querySelector("thead tr");if(hr&&!hr.querySelector("[data-site-head]")){var th=document.createElement("th");th.setAttribute("data-site-head","1");th.textContent="Площадка";hr.appendChild(th)}var data=viewMode==="rates"?buildRateUnits():filtered();var trs=Array.from(tb.querySelectorAll("tr"));var idx=0;trs.forEach(function(tr){if(tr.querySelector(".empty")){if(tr.firstElementChild)tr.firstElementChild.colSpan=9;return}if(!tr.children.length)return;var x=data[idx++]||{};var td=document.createElement("td");td.className="site-cell";td.textContent=x.site||"—";tr.appendChild(td)})};'+
       'render();'+
