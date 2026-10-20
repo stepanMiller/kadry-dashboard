@@ -545,7 +545,38 @@
   // WORKPLACE_SITES_07_10_2026_END
 `;
 
-  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+marker);
+
+  const patch21=String.raw`
+  // AUTHORITATIVE_CHECK_21_10_2026_START
+  {
+    const dm=html.match(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s);
+    const vm=html.match(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s);
+    if(!dm||!vm)throw new Error('Сверка 21.10: списки кадров не найдены');
+    const staff=JSON.parse(dm[1]), vacancies=JSON.parse(vm[1]);
+    const rate=staff.reduce((s,x)=>s+Number(x.r||0),0);
+    if(staff.length!==120||Math.abs(rate-117)>0.00001||vacancies.length!==1||Math.abs(Number(vacancies[0].r)-1)>0.00001)
+      throw new Error('Сверка 21.10: не пройдены контрольные итоги');
+    // Источник: «Заполн.штат.расп. на 21.10.26.xlsx», проверка 120 из 120 ФИО.
+    const situations=[
+      ['Бурякова Алина Алексеевна','Временно освобождена',0],
+      ['Шершакова Ольга Григорьевна','Временно освобождена',0],
+      ['Полозков Юрий Анатольевич','Временно занята',1],
+      ['Скрылева Арина Павловна','Временно занята',1],
+      ['Шкунов Денис Михайлович','Временно занята',1]
+    ];
+    for(const [name,state,r] of situations){
+      const x=staff.find(v=>String(v.f||'').trim()===name);
+      if(!x||Number(x.r||0)!==r)throw new Error('Сверка 21.10: '+name);
+      x.state=state;
+    }
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(staff)+';\nconst HALF_EXTRA=');
+    html=html.replaceAll('актуальность 13.10.2026','актуальность 21.10.2026');
+    html=html.replaceAll('финальная сверка 13.10.2026.','финальная сверка по отчёту на 21.10.2026.');
+    html=html.replaceAll('Кадровый_дашборд_13-10-2026.xls','Кадровый_дашборд_21-10-2026.xls');
+  }
+  // AUTHORITATIVE_CHECK_21_10_2026_END
+`;
+  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+patch21+'\n'+marker);
   document.open();document.write(src);document.close();
 })().catch(e=>{
   document.body.innerHTML='<div style="font:16px Arial;padding:30px;color:#991b1b"><b>Ошибка загрузки дашборда</b><br><br>'+String(e.message||e)+'</div>';
