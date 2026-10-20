@@ -570,6 +570,12 @@
       x.state=state;
     }
     html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(staff)+';\nconst HALF_EXTRA=');
+    // Показатель 117 включает 114 постоянно занятых + 3 временно занятые ставки.
+    // Две временно освобождённые строки не являются вакансиями.
+    const oldKpi="['Физические сотрудники',employees.length,employeeRates.toLocaleString('ru-RU')+' ставки','physical']";
+    const newKpi="['Физические сотрудники',employees.length,'114 постоянно + 3 временно = '+employeeRates.toLocaleString('ru-RU')+' ставки','physical']";
+    if(!html.includes(oldKpi))throw new Error('Сверка 21.10: не найдена карточка KPI сотрудников');
+    html=html.replace(oldKpi,newKpi);
     html=html.replaceAll('актуальность 13.10.2026','актуальность 21.10.2026');
     html=html.replaceAll('финальная сверка 13.10.2026.','финальная сверка по отчёту на 21.10.2026.');
     html=html.replaceAll('Кадровый_дашборд_13-10-2026.xls','Кадровый_дашборд_21-10-2026.xls');
