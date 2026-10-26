@@ -589,7 +589,54 @@
   }
   // AUTHORITATIVE_CHECK_21_10_2026_END
 `;
-  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+patch21+'\n'+marker);
+
+  const patch26=String.raw`
+  // AUTHORITATIVE_CHECK_26_10_2026_START
+  {
+    const dm=html.match(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s);
+    const vm=html.match(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s);
+    if(!dm||!vm)throw new Error('Сверка 26.10: списки кадров не найдены');
+    const staff=JSON.parse(dm[1]), vacancies=JSON.parse(vm[1]);
+    const occupied=staff.reduce((sum,x)=>sum+Number(x.r||0),0);
+    if(staff.length!==120||Math.abs(occupied-117)>0.00001||vacancies.length!==1)
+      throw new Error('Сверка 26.10: предыдущий кадровый состав не совпал');
+    const vac=vacancies[0];
+    if(Number(vac.r)!==1||String(vac.np||'').toLowerCase()!=='ведущий специалист' ||
+       !String(vac.z||'').includes('ЦСТ'))
+      throw new Error('Сверка 26.10: прежняя вакансия ЦСТ не найдена');
+    if(staff.some(x=>x.f==='Журбина Ангелина Геннадьевна'))
+      throw new Error('Сверка 26.10: Журбина уже включена');
+    const zhur=Object.assign({},vac,{
+      id:'STAFF-20261026-CST-ZHURBINA',
+      type:'Сотрудник',
+      f:'Журбина Ангелина Геннадьевна',
+      alias:'Журбина Ангелина Геннадьевна',
+      state:'Работа',s:'работает',reduction:false,r:1,
+      z:'ЦСТ',zf:'',i:'ЦСТ',project:'ЦСТ',
+      b:'Отдел сопровождения / ЦСТ',d:'Отдел сопровождения',
+      nd:'Отдел сопровождения',np:'Ведущий специалист',
+      rem:null,remoteMode:null,remoteOrder:null,
+      site:'Новатор',
+      m:'Штатная расстановка ГКУ на 26.10.2026: Журбина Ангелина Геннадьевна занимает ранее вакантную ставку ведущего специалиста отдела сопровождения. Управленческое закрепление ЦСТ перенесено с данной позиции; в штатной расстановке оно отдельно не указано.',
+      hrn:'Штатная расстановка ГКУ на 26.10.2026; новая занятая позиция. Дата приёма и приказ не подтверждены данным отчётом.'
+    });
+    staff.push(zhur);
+    if(staff.length!==121 ||
+       Math.abs(staff.reduce((sum,x)=>sum+Number(x.r||0),0)-118)>0.00001)
+       throw new Error('Сверка 26.10: контроль численности не пройден');
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,
+       'const D='+JSON.stringify(staff)+';\nconst HALF_EXTRA=');
+    html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,
+       'const VACANCIES_SOURCE=[];\nlet viewMode=');
+    html=html.replace('114 постоянно + 3 временно = ','115 постоянно + 3 временно = ');
+    html=html.replaceAll('актуальность 21.10.2026','актуальность 26.10.2026');
+    html=html.replaceAll('финальная сверка по отчёту на 21.10.2026.','финальная сверка по отчёту на 26.10.2026.');
+    html=html.replaceAll('Кадровый_дашборд_21-10-2026.xls','Кадровый_дашборд_26-10-2026.xls');
+  }
+  // AUTHORITATIVE_CHECK_26_10_2026_END
+`;
+
+  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+patch21+'\n'+patch26+'\n'+marker);
   document.open();document.write(src);document.close();
 })().catch(e=>{
   document.body.innerHTML='<div style="font:16px Arial;padding:30px;color:#991b1b"><b>Ошибка загрузки дашборда</b><br><br>'+String(e.message||e)+'</div>';
