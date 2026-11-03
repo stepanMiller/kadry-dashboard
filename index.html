@@ -636,7 +636,43 @@
   // AUTHORITATIVE_CHECK_26_10_2026_END
 `;
 
-  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+patch21+'\n'+patch26+'\n'+marker);
+
+  const patch03=String.raw`
+  // AUTHORITATIVE_CHECK_03_11_2026_START
+  {
+    const dm=html.match(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s);
+    const vm=html.match(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s);
+    if(!dm||!vm)throw new Error('Сверка 03.11: списки сотрудников не найдены');
+    let staff=JSON.parse(dm[1]), vacancies=JSON.parse(vm[1]);
+    const name='Филатова Варвара Андреевна';
+    const fil=staff.find(x=>String(x.f||'').trim()===name);
+    if(!fil||staff.length!==121||vacancies.length!==0||Number(fil.r)!==1||
+       String(fil.np||'').toLowerCase()!=='главный специалист')
+       throw new Error('Сверка 03.11: не совпало предыдущее состояние');
+    const vacant=Object.assign({},fil,{
+      id:'VAC-20261103-126',type:'Вакансия',
+      f:'Вакансия — Главный специалист',alias:'Вакансия',
+      state:'Вакансия',s:'вакансия',reduction:false,r:1,
+      o:null,hd:null,rem:null,remoteMode:null,remoteOrder:null,
+      m:'Штатная расстановка ГКУ на 03.11.2026: вакантна ставка главного специалиста отдела сопровождения. Филатова В.А., занимавшая позицию ранее, в новом отчёте отсутствует. Дата и основание выбытия не указаны. Управленческая метка *Викулова сохранена с прежней позиции.',
+      hrn:'Штатная расстановка на 03.11.2026: вакансия 1 ставки главного специалиста отдела сопровождения; дата увольнения Филатовой В.А. не подтверждена.'
+    });
+    staff=staff.filter(x=>x!==fil);
+    vacancies=[vacant];
+    const fte=staff.reduce((s,x)=>s+Number(x.r||0),0);
+    if(staff.length!==120||Math.abs(fte-117)>1e-6||
+       vacancies.length!==1||Number(vacancies[0].r)!==1)
+       throw new Error('Сверка 03.11: не прошёл контроль 120/117/1');
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,'const D='+JSON.stringify(staff)+';\nconst HALF_EXTRA=');
+    html=html.replace(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s,'const VACANCIES_SOURCE='+JSON.stringify(vacancies)+';\nlet viewMode=');
+    html=html.replace('115 постоянно + 3 временно = ','114 постоянно + 3 временно = ');
+    html=html.replaceAll('актуальность 26.10.2026','актуальность 03.11.2026');
+    html=html.replaceAll('финальная сверка по отчёту на 26.10.2026.','финальная сверка по отчёту на 03.11.2026.');
+    html=html.replaceAll('Кадровый_дашборд_26-10-2026.xls','Кадровый_дашборд_03-11-2026.xls');
+  }
+  // AUTHORITATIVE_CHECK_03_11_2026_END
+`;
+  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+patch21+'\n'+patch26+'\n'+patch03+'\n'+marker);
   document.open();document.write(src);document.close();
 })().catch(e=>{
   document.body.innerHTML='<div style="font:16px Arial;padding:30px;color:#991b1b"><b>Ошибка загрузки дашборда</b><br><br>'+String(e.message||e)+'</div>';
