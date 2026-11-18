@@ -750,7 +750,39 @@
   }
   // AUTHORITATIVE_REMOTE_18_11_2026_END
 `;
-  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+patch21+'\n'+patch26+'\n'+patch03+'\n'+patch13+'\n'+patch18+'\n'+marker);
+
+  const patchBoth=String.raw`
+  // MULTI_MODE_FILTER_18_11_2026_START
+  {
+    // A shared mode filter combines the two confirmed remote/hybrid categories.
+    const fm=html.match(/function filtered\(\)\{.*?\n\}/s);
+    const oldFilter="(!rem||(rem==='да'?x.remoteMode==='дистанционная работа':rem==='гибрид'?x.remoteMode==='гибридный график':rem==='не_указано'?!x.remoteMode:true))";
+    const combinedFilter="(!rem||(rem==='да'?x.remoteMode==='дистанционная работа':rem==='гибрид'?x.remoteMode==='гибридный график':rem==='оба'?(x.remoteMode==='дистанционная работа'||x.remoteMode==='гибридный график'):rem==='не_указано'?!x.remoteMode:true))";
+    if(!fm||!fm[0].includes(oldFilter))
+       throw new Error('Фильтр обоих режимов: условие предыдущей версии не найдено');
+    html=html.replace(fm[0],fm[0].replace(oldFilter,combinedFilter));
+
+    const qm=html.match(/function quickFilter\(v\)\{.*?\n\}/s);
+    const qLine="else if(v==='unconfirmed') $('fRemote').value='не_указано';";
+    if(!qm||!qm[0].includes(qLine))
+       throw new Error('Фильтр обоих режимов: быстрый фильтр не найден');
+    html=html.replace(qm[0],qm[0].replace(qLine,qLine+"\n  else if(v==='both') $('fRemote').value='оба';"));
+
+    const km=html.match(/function renderKpis\(\)\{.*?\n\}/s);
+    const kLine="  ['Гибрид',hybrid,'Подтверждено 18.11.2026','hybrid'],";
+    if(!km||!km[0].includes(kLine))
+       throw new Error('Фильтр обоих режимов: карточка гибрида не найдена');
+    html=html.replace(km[0],km[0].replace(kLine,kLine+"\n  ['Удалённо + гибрид',hybrid+distant,'Показать все 27 сотрудников','both'],"));
+
+    const prevOptions="['гибрид','Гибрид'],['не_указано','Режим не указан']";
+    const newOptions="['гибрид','Гибрид'],['оба','Удалённо + Гибрид'],['не_указано','Режим не указан']";
+    if(!html.includes(prevOptions))
+       throw new Error('Фильтр обоих режимов: выпадающий список не найден');
+    html=html.replace(prevOptions,newOptions);
+  }
+  // MULTI_MODE_FILTER_18_11_2026_END
+`;
+  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+patch21+'\n'+patch26+'\n'+patch03+'\n'+patch13+'\n'+patch18+'\n'+patchBoth+'\n'+marker);
   document.open();document.write(src);document.close();
 })().catch(e=>{
   document.body.innerHTML='<div style="font:16px Arial;padding:30px;color:#991b1b"><b>Ошибка загрузки дашборда</b><br><br>'+String(e.message||e)+'</div>';
