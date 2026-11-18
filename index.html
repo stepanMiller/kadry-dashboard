@@ -696,7 +696,61 @@
   }
   // AUTHORITATIVE_CHECK_13_11_2026_END
 `;
-  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+patch21+'\n'+patch26+'\n'+patch03+'\n'+patch13+'\n'+marker);
+
+  const patch18=String.raw`
+  // AUTHORITATIVE_REMOTE_18_11_2026_START
+  {
+    const dm=html.match(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s);
+    const vm=html.match(/const VACANCIES_SOURCE=(\[.*?\]);\nlet viewMode=/s);
+    if(!dm||!vm)throw new Error('18.11: кадровые массивы не найдены');
+    const staff=JSON.parse(dm[1]),vac=JSON.parse(vm[1]);
+    const hybrid=new Set(["Дробницкая Ольга Андреевна","Качалова Наталья Сергеевна","Козин Алексей Юрьевич","Колобкова Ирина Евгеньевна","Комарова Ольга Федоровна","Логинова Юлия Александровна","Муравьев Игорь Викторович","Носова Ксения Анатольевна","Переверзева Екатерина Андреевна","Петрова Юлия Сергеевна","Семечкина София Андреевна","Сонина Елена Владимировна","Крючков Дмитрий Петрович","Алиева Наталия Леонидовна","Аносинская Светлана Владимировна","Галицкая Ольга Юрьевна","Голеватова Елена Александровна","Дардыкина Наталья Васильевна","Златина Татьяна Николаевна","Картузова Дарья Михайловна","Суслова Юлия Ивановна","Сударикова Нелля Викторовна","Бакшева Оксана Евгеньевна","Лисенкова Александра Ивановна"]);
+    const distant=new Set(["Баранова Наталия Андреевна","Баркова Елизавета Александровна","Иванова Юлия Борисовна"]);
+    if(staff.length!==120||vac.length!==1||hybrid.size!==24||distant.size!==3)
+       throw new Error('18.11: неверные исходные итоги');
+    const names=new Set(staff.map(x=>String(x.f||'').trim()));
+    if([...hybrid,...distant].some(name=>!names.has(name))||
+       [...hybrid].some(name=>distant.has(name)))
+       throw new Error('18.11: нет соответствия по ФИО');
+    for(const x of staff){
+       const name=String(x.f||'').trim(),oldMode=x.remoteMode,oldOrder=x.remoteOrder;
+       if(distant.has(name)){
+         x.remoteMode='дистанционная работа';x.rem='да';
+         x.remoteOrder=oldMode==='дистанционная работа'?(oldOrder||null):null;
+         x.remoteSource='Перечень от 18.11.2026';
+       }else if(hybrid.has(name)){
+         x.remoteMode='гибридный график';x.rem='да';
+         x.remoteOrder=oldMode==='гибридный график'?(oldOrder||null):null;
+         x.remoteSource='Перечень от 18.11.2026';
+       }else{
+         x.remoteMode=null;x.rem=null;x.remoteOrder=null;x.remoteSource=null;
+       }
+    }
+    if(staff.filter(x=>x.remoteMode==='гибридный график').length!==24||
+       staff.filter(x=>x.remoteMode==='дистанционная работа').length!==3)
+       throw new Error('18.11: итог режимов работы не совпал');
+    html=html.replace(/const D=(\[.*?\]);\nconst HALF_EXTRA=/s,
+      'const D='+JSON.stringify(staff)+';\nconst HALF_EXTRA=');
+    const k=html.match(/function renderKpis\(\)\{.*?\n\}/s);
+    if(!k)throw new Error('18.11: карточки показателей не найдены');
+    html=html.replace(k[0],"function renderKpis(){\n const employees=D,vacancies=VACANCIES_SOURCE,all=[...D,...VACANCIES_SOURCE];\n const rate=employees.reduce((s,x)=>s+Number(x.r||0),0);\n const vr=vacancies.reduce((s,x)=>s+Number(x.r||0),0);\n const hybrid=employees.filter(x=>x.remoteMode==='гибридный график').length;\n const distant=employees.filter(x=>x.remoteMode==='дистанционная работа').length;\n const unspecified=employees.length-hybrid-distant;\n const half=all.filter(x=>Number(x.r)===0.5);\n const reductions=all.filter(x=>x.reduction===true);\n const fmt=n=>Number(n).toLocaleString('ru-RU');\n const list=[\n  ['Физические сотрудники',employees.length,fmt(rate)+' занятых ставок','physical'],\n  ['Вакансии',vacancies.length,fmt(vr)+' ставка','вакансия'],\n  ['Всего учтено',all.length,fmt(rate+vr)+' штатных ставок','accounted'],\n  ['Сокращение',reductions.length,fmt(reductions.reduce((s,x)=>s+Number(x.r||0),0))+' ставки','сокращение'],\n  ['0,5 ставки',half.length,half.length+' позиции','0.5'],\n  ['Удалённо',distant,'Подтверждено 18.11.2026','remote'],\n  ['Гибрид',hybrid,'Подтверждено 18.11.2026','hybrid'],\n  ['Режим не указан',unspecified,'В перечне 18.11 отсутствуют','unconfirmed'],\n  ['Плановая численность',118,fmt(rate+vr)+' ставок учтено','plan']\n ];\n const host=$('kpis');host.textContent='';\n for(const [label,num,hint,filter] of list){\n   const card=document.createElement('div');card.className='card kpi';card.style.cursor='pointer';\n   const a=document.createElement('div');a.className='label';a.textContent=label;\n   const b=document.createElement('div');b.className='value';b.textContent=String(num);\n   const c=document.createElement('div');c.className='hint';c.textContent=hint;\n   card.append(a,b,c);card.addEventListener('click',()=>quickFilter(filter));host.append(card);\n }\n}");
+    const ff=html.match(/function filtered\(\)\{.*?\n\}/s);
+    if(!ff)throw new Error('18.11: фильтры не найдены');
+    const oldCheck="(!rem||(rem==='да'?String(x.rem||'').toLowerCase()==='да':String(x.rem||'').toLowerCase()!=='да'))";
+    const newCheck="(!rem||(rem==='да'?x.remoteMode==='дистанционная работа':rem==='гибрид'?x.remoteMode==='гибридный график':rem==='не_указано'?!x.remoteMode:true))";
+    if(!ff[0].includes(oldCheck))throw new Error('18.11: неожиданное условие фильтра');
+    html=html.replace(ff[0],ff[0].replace(oldCheck,newCheck));
+    const q=html.match(/function quickFilter\(v\)\{.*?\n\}/s);
+    if(!q)throw new Error('18.11: быстрый фильтр не найден');
+    const oldQ="else if(v==='remote') $('fRemote').value='да';";
+    const newQ=oldQ+"\n  else if(v==='hybrid') $('fRemote').value='гибрид';\n  else if(v==='unconfirmed') $('fRemote').value='не_указано';";
+    if(!q[0].includes(oldQ))throw new Error('18.11: старый быстрый фильтр не найден');
+    html=html.replace(q[0],q[0].replace(oldQ,newQ));
+    html=html.replace('</body>',"<script>\n(function(){\n const select=document.getElementById('fRemote');\n if(select){ const opts=[['','Все режимы работы'],['да','Удалённо'],['гибрид','Гибрид'],['не_указано','Режим не указан']]; select.textContent=''; for(const [value,label] of opts){const item=document.createElement('option');item.value=value;item.textContent=label;select.appendChild(item);} }\n const host=document.getElementById('kpis');\n if(host&&!document.getElementById('modeAudit18')){const note=document.createElement('p');note.id='modeAudit18';note.style.cssText='margin:2px 0 16px;color:#57657a;font:13px/1.5 Arial,sans-serif';note.textContent='Режимы по перечню на 18.11.2026. Трошина А.С. есть в перечне удалёнки, но не числится в действующем штате, поэтому не включена в показатели. Отсутствие человека в перечне не подтверждает очный режим.';host.insertAdjacentElement('afterend',note);}\n if(typeof renderKpis==='function')renderKpis();\n if(typeof render==='function')render();\n})();\n<\/script>"+'</body>');
+  }
+  // AUTHORITATIVE_REMOTE_18_11_2026_END
+`;
+  src=src.replace(marker,patch15+'\n'+patchMin+'\n'+patch24+'\n'+patchSite+'\n'+patch21+'\n'+patch26+'\n'+patch03+'\n'+patch13+'\n'+patch18+'\n'+marker);
   document.open();document.write(src);document.close();
 })().catch(e=>{
   document.body.innerHTML='<div style="font:16px Arial;padding:30px;color:#991b1b"><b>Ошибка загрузки дашборда</b><br><br>'+String(e.message||e)+'</div>';
